@@ -1,4 +1,12 @@
-import { useApp } from "@/contexts/AppContext";
+import { useState } from "react";
+
+interface Props {
+  lang: string;
+  fr: boolean;
+  goTo: (p: string) => void;
+  setTutorMsg: (m: string) => void;
+  setShowModal: (b: boolean) => void;
+}
 
 const TOPICS_DATA = [
   { icon: "📐", name: "Quadratic Equations", nameFr: "Équations du 2nd degré", sub: "Factorisation, formula, discriminant", color: "bg-secondary", level: "Senior" },
@@ -13,14 +21,13 @@ const TOPICS_DATA = [
   { icon: "📊", name: "Data Analysis", nameFr: "Analyse de données", sub: "Mean, median, variance", color: "bg-destructive", level: "Junior" },
 ];
 
-const LV = {
+const LV: Record<string, { bg: string; c: string }> = {
   Junior: { bg: "bg-accent/15", c: "text-accent" },
   Senior: { bg: "bg-primary/15", c: "text-primary" },
   "A-Level": { bg: "bg-secondary/15", c: "text-secondary" },
 };
 
-export default function Topics() {
-  const { lang, goTo, setTutorMsg, fr } = useApp();
+export default function Topics({ fr, goTo, setTutorMsg }: Props) {
   const [filter, setFilter] = useState("All");
   const shown = filter === "All" ? TOPICS_DATA : TOPICS_DATA.filter((t) => t.level === filter);
 
@@ -30,7 +37,7 @@ export default function Topics() {
   }
 
   return (
-    <div className="absolute inset-0 overflow-y-auto p-5">
+    <div className="absolute inset-0 overflow-y-auto p-4 md:p-5">
       <div className="flex gap-1.5 flex-wrap mb-4">
         {["All", "Junior", "Senior", "A-Level"].map((f) => (
           <button key={f} onClick={() => setFilter(f)}
@@ -41,7 +48,7 @@ export default function Topics() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {shown.map((t) => {
-          const lv = LV[t.level as keyof typeof LV];
+          const lv = LV[t.level];
           return (
             <div key={t.name} onClick={() => openTopic(t.name)}
               className="bg-card border border-border rounded-xl p-4 cursor-pointer relative overflow-hidden transition-all hover:-translate-y-1 hover:border-secondary/30">
@@ -60,5 +67,3 @@ export default function Topics() {
     </div>
   );
 }
-
-import { useState } from "react";

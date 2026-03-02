@@ -1,0 +1,4 @@
+project_id = "lsiknhkchryvkfisezik"
+
+[functions.math-tutor]
+verify_jwt = false

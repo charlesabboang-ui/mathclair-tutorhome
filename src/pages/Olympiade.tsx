@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { useApp } from "@/contexts/AppContext";
 
-export default function Olympiade() {
-  const { lang, setShowModal, fr } = useApp();
+interface Props {
+  lang: string;
+  fr: boolean;
+  setShowModal: (b: boolean) => void;
+}
+
+export default function Olympiade({ fr, setShowModal }: Props) {
   const [tab, setTab] = useState("student");
 
   const STUDENT_PERKS = [
@@ -27,8 +31,7 @@ export default function Olympiade() {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-background">
-      {/* Hero */}
-      <div className="relative overflow-hidden px-6 pt-12 pb-10 text-center"
+      <div className="relative overflow-hidden px-4 md:px-6 pt-10 md:pt-12 pb-10 text-center"
         style={{ background: "linear-gradient(180deg, hsl(28,30%,4%) 0%, hsl(222,47%,6%) 100%)" }}>
         <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsla(38,92%,50%,0.16) 0%, transparent 68%)" }} />
@@ -36,7 +39,7 @@ export default function Olympiade() {
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-4 py-1.5 rounded-full text-xs font-bold mb-4">
           ⚡ {fr ? "PLAN EXCLUSIF MATHCLAIR" : "MATHCLAIR EXCLUSIVE PLAN"}
         </div>
-        <h1 className="font-display text-3xl md:text-4xl leading-tight mb-3">
+        <h1 className="font-display text-2xl md:text-4xl leading-tight mb-3">
           {fr ? "Le Plan " : "The "}<span className="gold-text">Olympiade</span>
         </h1>
         <p className="text-sm text-muted2 max-w-md mx-auto leading-relaxed mb-6">
@@ -56,8 +59,7 @@ export default function Olympiade() {
         </div>
       </div>
 
-      {/* Perks */}
-      <div className="px-5 pt-8 max-w-4xl mx-auto">
+      <div className="px-4 md:px-5 pt-8 max-w-4xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {perks.map(([ico, title, desc], i) => (
             <div key={title} className="animate-slide-up rounded-xl p-4 relative overflow-hidden border border-primary/30"
@@ -71,8 +73,7 @@ export default function Olympiade() {
         </div>
       </div>
 
-      {/* Pricing */}
-      <div className="px-5 py-10 max-w-3xl mx-auto">
+      <div className="px-4 md:px-5 py-10 max-w-3xl mx-auto">
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-card border border-border rounded-2xl p-5">
             <p className="font-display text-sm mb-2">Free</p>
@@ -101,13 +102,9 @@ export default function Olympiade() {
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="px-5 pb-14 text-center">
+      <div className="px-4 md:px-5 pb-14 text-center">
         <div className="float-anim text-4xl mb-3 inline-block">🚀</div>
         <h2 className="font-display text-xl mb-2">{fr ? "Prêt à rejoindre l'élite ?" : "Ready to join the elite?"}</h2>
-        <p className="text-muted2 max-w-md mx-auto text-sm mb-6 leading-relaxed">
-          {fr ? "248 élèves concourent chaque mois." : "248 students compete every month."}
-        </p>
         <button onClick={() => setShowModal(true)}
           className="glow-btn px-10 py-3 rounded-full border-none bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-extrabold text-base cursor-pointer">
           🏆 {fr ? "S'abonner au Plan Olympiade" : "Subscribe to Olympiade Plan"}
