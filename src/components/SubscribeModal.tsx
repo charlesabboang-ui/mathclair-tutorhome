@@ -1,26 +1,32 @@
 import { useState } from "react";
-import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/hooks/useAuth";
 
-export default function SubscribeModal() {
-  const { lang, user, setShowModal, fr } = useApp();
+interface Props {
+  lang: string;
+  fr: boolean;
+  onClose: () => void;
+}
+
+export default function SubscribeModal({ fr, onClose }: Props) {
+  const { profile } = useAuth();
   const [cycle, setCycle] = useState("monthly");
-  const [name, setName] = useState(user?.name || "");
-  const [phone, setPhone] = useState(user?.phone || "");
+  const [name, setName] = useState(profile?.name || "");
+  const [phone, setPhone] = useState("");
   const [done, setDone] = useState(false);
 
   return (
     <div className="fixed inset-0 bg-background/80 z-[200] flex items-center justify-center p-5"
-      onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}>
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-[450px] rounded-2xl overflow-hidden animate-fade-in border border-primary/30"
         style={{ background: "linear-gradient(140deg, hsl(28,30%,5%), hsl(222,47%,11%))", boxShadow: "0 40px 80px rgba(0,0,0,.65)" }}>
         <div className="h-1 bg-gradient-to-r from-primary via-gold-light to-primary" />
-        <div className="p-7">
+        <div className="p-6 md:p-7">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🏆</span>
               <p className="font-display text-base text-primary">{fr ? "Plan Olympiade" : "Olympiade Plan"}</p>
             </div>
-            <button onClick={() => setShowModal(false)} className="bg-transparent border-none text-muted-foreground text-xl cursor-pointer">✕</button>
+            <button onClick={onClose} className="bg-transparent border-none text-muted-foreground text-xl cursor-pointer">✕</button>
           </div>
 
           {done ? (
@@ -31,7 +37,7 @@ export default function SubscribeModal() {
                 {fr ? `Merci ${name} ! Notre équipe vous contacte au ${phone} dans les 24h.`
                   : `Thank you, ${name}! Our team will contact you at ${phone} within 24h.`}
               </p>
-              <button onClick={() => setShowModal(false)}
+              <button onClick={onClose}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-bold text-sm border-none cursor-pointer">
                 ✅ {fr ? "Parfait !" : "Got it!"}
               </button>

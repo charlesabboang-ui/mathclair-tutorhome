@@ -1,8 +1,12 @@
-import { useApp } from "@/contexts/AppContext";
+interface Props {
+  lang: string;
+  fr: boolean;
+  goTo: (p: string) => void;
+  setTutorMsg: (m: string) => void;
+  setShowModal: (b: boolean) => void;
+}
 
-export default function Exams() {
-  const { lang, goTo, fr } = useApp();
-
+export default function Exams({ fr, goTo }: Props) {
   const cards = [
     { ic: "🏫", name: "BEPC", desc: fr ? "Brevet du Premier Cycle. Épreuves de 3ème." : "End of Junior Secondary. Form 5 papers.", badge: "Francophone", bg: "bg-accent/15", c: "text-accent" },
     { ic: "📋", name: "GCE O-Level", desc: "Form 5 Mathematics past papers — all topics.", badge: "Anglophone", bg: "bg-secondary/15", c: "text-secondary" },
@@ -15,7 +19,7 @@ export default function Exams() {
   ];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto p-5">
+    <div className="absolute inset-0 overflow-y-auto p-4 md:p-5">
       <p className="text-muted2 mb-4 text-sm">
         {fr ? "Préparez-vous à tous les examens nationaux du Cameroun avec 3 000+ exercices."
           : "Prepare for all Cameroonian national exams with 3,000+ exercises."}

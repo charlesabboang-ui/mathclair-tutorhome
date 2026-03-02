@@ -1,4 +1,8 @@
-import { useApp } from "@/contexts/AppContext";
+interface Props {
+  onLogin: (mode: "student" | "parent") => void;
+  lang: "en" | "fr";
+  setLang: (l: "en" | "fr") => void;
+}
 
 const LEADERBOARD = [
   { name: "Aisha N.", school: "GBHS Yaoundé", score: 9840, badge: "🥇", delta: "+240" },
@@ -8,53 +12,61 @@ const LEADERBOARD = [
   { name: "Claire K.", school: "Lycée Bilingue", score: 8870, badge: "🎖️", delta: "+130" },
 ];
 
-export default function Landing() {
-  const { lang, goLogin, fr } = useApp();
+export default function Landing({ onLogin, lang, setLang }: Props) {
+  const fr = lang === "fr";
 
   return (
     <div className="min-h-screen bg-background font-body text-foreground overflow-y-auto">
       <div className="fixed inset-0 pointer-events-none grid-bg" />
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/90 sticky top-0 backdrop-blur-xl z-10">
+      <nav className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-border bg-background/90 sticky top-0 backdrop-blur-xl z-10">
         <div className="font-display text-xl">Math<span className="text-primary">Clair</span></div>
-        <div className="flex items-center gap-2.5">
-          <button onClick={() => goLogin("parent")}
-            className="px-4 py-1.5 rounded-full border border-border bg-transparent text-muted2 text-xs font-bold cursor-pointer hover:bg-muted transition-colors">
+        <div className="flex items-center gap-2">
+          <div className="flex bg-muted rounded-full p-0.5 gap-0.5 mr-2">
+            {(["en", "fr"] as const).map((l) => (
+              <button key={l} onClick={() => setLang(l)}
+                className={`px-2.5 py-1 rounded-full text-[0.72rem] font-bold cursor-pointer border-none transition-all ${
+                  lang === l ? "bg-secondary text-secondary-foreground" : "bg-transparent text-muted-foreground"
+                }`}>{l.toUpperCase()}</button>
+            ))}
+          </div>
+          <button onClick={() => onLogin("parent")}
+            className="hidden sm:inline-flex px-4 py-1.5 rounded-full border border-border bg-transparent text-muted2 text-xs font-bold cursor-pointer hover:bg-muted transition-colors">
             👨‍👩‍👧 Parent
           </button>
-          <button onClick={() => goLogin("student")}
+          <button onClick={() => onLogin("student")}
             className="px-4 py-1.5 rounded-full border-none bg-primary text-primary-foreground text-xs font-bold cursor-pointer hover:brightness-110 transition-all">
-            {fr ? "Connexion élève →" : "Student Login →"}
+            {fr ? "Connexion →" : "Login →"}
           </button>
         </div>
       </nav>
 
       {/* Hero */}
-      <div className="flex flex-col items-center text-center px-6 pt-20 pb-12 relative z-5">
+      <div className="flex flex-col items-center text-center px-4 md:px-6 pt-12 md:pt-20 pb-12 relative z-5">
         <div className="inline-flex items-center gap-2 bg-secondary/10 border border-secondary/30 text-secondary px-4 py-1.5 rounded-full text-xs font-semibold mb-7">
           🇨🇲 {fr ? "Conçu pour les lycées camerounais" : "Designed for Cameroon Secondary Schools"}
         </div>
-        <h1 className="font-display text-4xl md:text-6xl leading-tight mb-4">
+        <h1 className="font-display text-3xl md:text-6xl leading-tight mb-4">
           {fr ? "Votre tuteur" : "Your Personal"}<br />
           <span className="italic text-primary font-serif">{fr ? "Maths personnel" : "Math Tutor"}</span><br />
           {fr ? "à domicile" : "at Home"}
         </h1>
-        <p className="text-base text-muted2 max-w-lg leading-relaxed mb-9">
+        <p className="text-sm md:text-base text-muted2 max-w-lg leading-relaxed mb-9">
           {fr ? "Tutorat IA bilingue voix-à-voix. 3 000+ exercices BEPC, Probatoire, Baccalauréat. MINESEC & GCE."
             : "Bilingual voice-to-voice AI tutoring. 3,000+ exercises for BEPC, Probatoire, Baccalauréat. MINESEC & GCE."}
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
-          <button onClick={() => goLogin("student")}
-            className="px-8 py-3 rounded-full border-none bg-primary text-primary-foreground font-bold text-sm cursor-pointer hover:brightness-110 transition-all">
+          <button onClick={() => onLogin("student")}
+            className="px-6 md:px-8 py-3 rounded-full border-none bg-primary text-primary-foreground font-bold text-sm cursor-pointer hover:brightness-110 transition-all">
             🎓 {fr ? "Commencer gratuitement" : "Start Learning Free"}
           </button>
-          <button onClick={() => goLogin("parent")}
-            className="px-8 py-3 rounded-full border border-border bg-transparent text-muted2 font-bold text-sm cursor-pointer hover:bg-muted transition-colors">
+          <button onClick={() => onLogin("parent")}
+            className="px-6 md:px-8 py-3 rounded-full border border-border bg-transparent text-muted2 font-bold text-sm cursor-pointer hover:bg-muted transition-colors">
             👨‍👩‍👧 {fr ? "Espace parent" : "Parent Space"}
           </button>
         </div>
-        <div className="flex gap-10 mt-14 flex-wrap justify-center">
+        <div className="flex gap-6 md:gap-10 mt-14 flex-wrap justify-center">
           {[
             ["3 000+", fr ? "Exercices" : "Exercises"],
             ["10+", fr ? "Niveaux" : "Class Levels"],
@@ -62,7 +74,7 @@ export default function Landing() {
             ["EN/FR", "Bilingue"],
           ].map(([n, l]) => (
             <div key={l} className="text-center">
-              <div className="font-display text-3xl text-primary">{n}</div>
+              <div className="font-display text-2xl md:text-3xl text-primary">{n}</div>
               <div className="text-xs text-muted-foreground mt-1">{l}</div>
             </div>
           ))}
@@ -70,9 +82,9 @@ export default function Landing() {
       </div>
 
       {/* Features */}
-      <div className="px-8 pb-14 max-w-5xl mx-auto">
-        <h2 className="font-display text-2xl text-center mb-2">{fr ? "Tout ce dont un élève a besoin" : "Everything a Student Needs"}</h2>
-        <p className="text-center text-muted-foreground mb-8">{fr ? "Conçu pour le système éducatif camerounais" : "Built for the Cameroonian education system"}</p>
+      <div className="px-4 md:px-8 pb-14 max-w-5xl mx-auto">
+        <h2 className="font-display text-xl md:text-2xl text-center mb-2">{fr ? "Tout ce dont un élève a besoin" : "Everything a Student Needs"}</h2>
+        <p className="text-center text-muted-foreground mb-8 text-sm">{fr ? "Conçu pour le système éducatif camerounais" : "Built for the Cameroonian education system"}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { color: "bg-primary", icon: "🗣️", h: fr ? "Tuteur vocal IA" : "Voice AI Tutor", p: fr ? "Parlez avec Clair voix-à-voix. Explications pas à pas." : "Speak with Clair voice-to-voice. Step-by-step explanations." },
@@ -91,8 +103,8 @@ export default function Landing() {
       </div>
 
       {/* Olympiade teaser */}
-      <div className="px-8 pb-16 max-w-5xl mx-auto">
-        <div className="relative rounded-2xl overflow-hidden border border-primary/30 p-10"
+      <div className="px-4 md:px-8 pb-16 max-w-5xl mx-auto">
+        <div className="relative rounded-2xl overflow-hidden border border-primary/30 p-6 md:p-10"
           style={{ background: "linear-gradient(135deg, hsl(28,30%,4%), hsl(222,47%,11%))" }}>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, hsla(38,92%,50%,0.12) 0%, transparent 65%)" }} />
@@ -109,20 +121,14 @@ export default function Landing() {
                   : "Monthly competitions, medals, certificates — 5,000 FCFA/month."}
               </p>
               <div className="flex gap-3 flex-wrap">
-                <button onClick={() => goLogin("student")} className="glow-btn px-6 py-2.5 rounded-full border-none bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-extrabold text-sm cursor-pointer">
+                <button onClick={() => onLogin("student")} className="glow-btn px-6 py-2.5 rounded-full border-none bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-extrabold text-sm cursor-pointer">
                   🏆 {fr ? "Découvrir" : "Explore"}
-                </button>
-                <button onClick={() => goLogin("parent")}
-                  className="px-5 py-2.5 rounded-full border border-primary/30 bg-transparent text-primary font-bold text-sm cursor-pointer">
-                  👨‍👩‍👧 {fr ? "Espace parent" : "Parent Space"} →
                 </button>
               </div>
             </div>
-            {/* Mini leaderboard */}
             <div className="bg-background/30 border border-primary/30 rounded-xl overflow-hidden">
               <div className="p-3 border-b border-primary/30">
                 <p className="font-display text-sm text-primary">📊 {fr ? "Classement mensuel" : "Monthly Ranking"}</p>
-                <p className="text-[0.69rem] text-muted-foreground mt-0.5">248 {fr ? "élèves ce mois" : "students this month"}</p>
               </div>
               {LEADERBOARD.map((r, i) => (
                 <div key={r.name} className="flex items-center gap-2.5 px-3.5 py-2" style={{ borderBottom: i < 4 ? "1px solid hsla(38,92%,50%,0.07)" : "none" }}>

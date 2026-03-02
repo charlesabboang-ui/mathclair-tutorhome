@@ -1,18 +1,31 @@
-import { useApp } from "@/contexts/AppContext";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/Index";
-import LoginScreen from "@/components/LoginScreen";
+import AuthScreen from "@/components/AuthScreen";
 import AppShell from "@/components/AppShell";
 
 export default function AppRoot() {
-  const { screen } = useApp();
+  const { user, loading } = useAuth();
+  const [authMode, setAuthMode] = useState<"student" | "parent" | null>(null);
+  const [lang, setLang] = useState<"en" | "fr">("en");
 
-  if (screen === "login-student" || screen === "login-parent") {
-    return <LoginScreen mode={screen === "login-parent" ? "parent" : "student"} />;
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="font-display text-2xl mb-3">Math<span className="text-primary">Clair</span></div>
+          <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin-slow mx-auto" />
+        </div>
+      </div>
+    );
   }
 
-  if (screen === "app") {
-    return <AppShell />;
+  if (!user) {
+    if (authMode) {
+      return <AuthScreen mode={authMode} onBack={() => setAuthMode(null)} lang={lang} />;
+    }
+    return <Landing onLogin={setAuthMode} lang={lang} setLang={setLang} />;
   }
 
-  return <Landing />;
+  return <AppShell />;
 }
