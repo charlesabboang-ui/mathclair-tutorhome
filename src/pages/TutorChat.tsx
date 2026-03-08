@@ -21,8 +21,8 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   const [msgs, setMsgs] = useState<Message[]>([{
     id: 0, role: "assistant",
     text: fr
-      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques IA. Posez votre question par texte ou par voix !`
-      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your AI math tutor. Ask any question by text or voice!`,
+      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques à domicile. Posez votre question par texte ou par voix !`
+      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your math tutor at Home. Ask any question by text or voice!`,
   }]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -169,7 +169,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
             <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${busy ? "bg-primary" : "bg-emerald"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">Clair — AI Math Tutor</p>
+            <p className="text-sm font-bold">{fr ? "Clair — Tuteur Maths à Domicile" : "Clair — Math Tutor at Home"}</p>
             <p className="text-[0.69rem] text-muted-foreground">{status}</p>
           </div>
           {speaking && (
