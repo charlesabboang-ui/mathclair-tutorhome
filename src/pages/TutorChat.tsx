@@ -169,7 +169,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
             <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${busy ? "bg-primary" : "bg-emerald"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">Clair — AI Math Tutor</p>
+            <p className="text-sm font-bold">{fr ? "Clair — Tuteur Maths à Domicile" : "Clair — Math Tutor at Home"}</p>
             <p className="text-[0.69rem] text-muted-foreground">{status}</p>
           </div>
           {speaking && (
