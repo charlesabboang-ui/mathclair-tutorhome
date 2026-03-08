@@ -26,6 +26,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   }]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voiceGender, setVoiceGender] = useState<"female" | "male">("female");
   const [rec, setRec] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -89,16 +90,18 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       u.volume = 1.0;
 
       const voices = speechSynthesis.getVoices();
-      const v = fr
-        ? voices.find((v) => v.lang === "fr-CM") ||
-          voices.find((v) => v.lang === "fr-FR" && v.name.toLowerCase().includes("google")) ||
-          voices.find((v) => v.lang === "fr-FR") ||
-          voices.find((v) => v.lang.startsWith("fr"))
-        : voices.find((v) => v.lang === "en-CM") ||
-          voices.find((v) => v.lang === "en-GB" && v.name.toLowerCase().includes("google")) ||
-          voices.find((v) => v.lang === "en-GB") ||
-          voices.find((v) => v.lang === "en-US" && v.name.toLowerCase().includes("google")) ||
-          voices.find((v) => v.lang.startsWith("en"));
+      const isFemale = voiceGender === "female";
+      // Helper: check if voice name hints at gender
+      const femaleHints = ["female", "woman", "fiona", "samantha", "victoria", "alice", "amelie", "marie", "google uk english female", "google français"];
+      const maleHints = ["male", "man", "daniel", "thomas", "james", "google uk english male"];
+      const matchesGender = (v: SpeechSynthesisVoice) => {
+        const n = v.name.toLowerCase();
+        return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
+      };
+
+      const langVoices = voices.filter(v => fr ? v.lang.startsWith("fr") : v.lang.startsWith("en"));
+      const genderMatch = langVoices.filter(matchesGender);
+      const v = genderMatch[0] || langVoices.find(v => v.name.toLowerCase().includes("google")) || langVoices[0];
       if (v) u.voice = v;
 
       u.onend = () => {
@@ -209,10 +212,24 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
             <p className="text-sm font-bold">{fr ? "Clair — Tuteur Maths à Domicile" : "Clair — Math Tutor at Home"}</p>
             <p className="text-[0.69rem] text-muted-foreground">{status}</p>
           </div>
-          {speaking && (
-            <button onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}
-              className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer">
-              ⏹ Stop
+          <div className="flex items-center gap-1.5">
+            <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
+              {(["female", "male"] as const).map((g) => (
+                <button key={g} onClick={() => setVoiceGender(g)}
+                  className={`px-2 py-1 rounded-full text-[0.68rem] font-bold cursor-pointer border-none transition-all ${
+                    voiceGender === g ? "bg-secondary text-secondary-foreground" : "bg-transparent text-muted-foreground"
+                  }`}>
+                  {g === "female" ? "👩" : "👨"} {g === "female" ? (fr ? "Voix F" : "Female") : (fr ? "Voix M" : "Male")}
+                </button>
+              ))}
+            </div>
+            {speaking && (
+              <button onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}
+                className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer">
+                ⏹ Stop
+              </button>
+            )}
+          </div>
             </button>
           )}
         </div>
