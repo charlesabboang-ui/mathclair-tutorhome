@@ -80,7 +80,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
         }}
       />
 
-      <div className="w-full max-w-[420px] relative z-10 animate-fade-in">
+      <div className="w-full max-w-[420px] relative z-10 animate-fade-in" onKeyDown={handleKeyDown}>
         <div className={`bg-card rounded-2xl overflow-hidden border-[1.5px] ${isStudent ? "border-border" : "border-gold/30"}`}
           style={{ boxShadow: isStudent ? "0 40px 80px hsla(239,84%,67%,0.12)" : "0 40px 80px hsla(38,92%,50%,0.10)" }}>
           <div className="h-1" style={{
