@@ -21,8 +21,8 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   const [msgs, setMsgs] = useState<Message[]>([{
     id: 0, role: "assistant",
     text: fr
-      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques IA. Posez votre question par texte ou par voix !`
-      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your AI math tutor. Ask any question by text or voice!`,
+      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques à domicile. Posez votre question par texte ou par voix !`
+      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your math tutor at Home. Ask any question by text or voice!`,
   }]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
