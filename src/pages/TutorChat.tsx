@@ -229,6 +229,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
                 ⏹ Stop
               </button>
             )}
+          </div>
         </div>
 
         {/* Messages */}
