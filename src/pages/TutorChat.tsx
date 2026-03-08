@@ -40,18 +40,34 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     speechSynthesis.cancel();
     setSpeaking(true);
     // Strip LaTeX for speech
-    const clean = text.replace(/\$\$[\s\S]*?\$\$/g, "").replace(/\$[^\$]*?\$/g, "")
-      .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1 over $2")
-      .replace(/\\sqrt\{([^}]*)\}/g, "square root of $1")
-      .replace(/\\[a-zA-Z]+/g, "").replace(/[{}]/g, "")
-      .replace(/→/g, "").replace(/\n+/g, ". ").substring(0, 600);
+    const clean = text
+      .replace(/\$\$[\s\S]*?\$\$/g, "")
+      .replace(/\$[^\$]*?\$/g, "")
+      .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
+      .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
+      .replace(/\\[a-zA-Z]+/g, "")
+      .replace(/[{}]/g, "")
+      .replace(/→/g, "")
+      .replace(/\n+/g, ". ")
+      .substring(0, 600);
     const u = new SpeechSynthesisUtterance(clean);
-    u.lang = fr ? "fr-FR" : "en-GB";
-    u.rate = 0.88;
+    // Prefer Cameroonian locale, fallback to general FR/EN
+    u.lang = fr ? "fr-CM" : "en-CM";
+    u.rate = 0.85;
+    u.pitch = 1.05;
+
     const voices = speechSynthesis.getVoices();
-    const v = voices.find((v) =>
-      fr ? v.lang.startsWith("fr") : v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Samantha"))
-    );
+    // Try to find a voice matching Cameroonian locale first, then general
+    const v = fr
+      ? voices.find((v) => v.lang === "fr-CM") ||
+        voices.find((v) => v.lang === "fr-FR" && v.name.includes("Google")) ||
+        voices.find((v) => v.lang.startsWith("fr"))
+      : voices.find((v) => v.lang === "en-CM") ||
+        voices.find((v) => v.lang === "en-NG") ||
+        voices.find((v) => v.lang === "en-GH") ||
+        voices.find((v) => v.lang === "en-ZA") ||
+        voices.find((v) => v.lang === "en-GB" && v.name.includes("Google")) ||
+        voices.find((v) => v.lang.startsWith("en"));
     if (v) u.voice = v;
     u.onend = () => setSpeaking(false);
     u.onerror = () => setSpeaking(false);
@@ -114,7 +130,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     if (rec) { recRef.current?.stop(); setRec(false); return; }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const r = new SR();
-    r.lang = fr ? "fr-FR" : "en-GB";
+    r.lang = fr ? "fr-CM" : "en-GB";
     r.interimResults = true;
     r.onresult = (e: any) => {
       let final = "", interim = "";
