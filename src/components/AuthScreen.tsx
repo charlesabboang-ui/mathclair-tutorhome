@@ -37,25 +37,34 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
     setErr("");
     setSuccess("");
 
-    if (isSignUp) {
-      const result = await signUp(email, password, name, mode === "parent", {
-        level: isStudent ? level : "",
-        school: isStudent ? school : "",
-        childName: !isStudent ? childName : "",
-      });
-      setLoading(false);
-      if (result.error) {
-        setErr(result.error);
+    try {
+      if (isSignUp) {
+        const result = await signUp(email, password, name, mode === "parent", {
+          level: isStudent ? level : "",
+          school: isStudent ? school : "",
+          childName: !isStudent ? childName : "",
+        });
+        setLoading(false);
+        if (result.error) {
+          setErr(result.error);
+        } else {
+          setSuccess(fr ? "Compte créé ! Connexion en cours…" : "Account created! Signing in…");
+        }
       } else {
-        setSuccess(fr ? "Vérifiez votre email pour confirmer votre compte." : "Check your email to confirm your account.");
+        const result = await signIn(email, password);
+        setLoading(false);
+        if (result.error) {
+          setErr(result.error);
+        }
       }
-    } else {
-      const result = await signIn(email, password);
+    } catch (e: any) {
       setLoading(false);
-      if (result.error) {
-        setErr(fr ? "Email ou mot de passe incorrect." : "Incorrect email or password.");
-      }
+      setErr(e?.message || (fr ? "Une erreur est survenue." : "An error occurred."));
     }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !loading) submit();
   }
 
   return (
@@ -71,7 +80,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
         }}
       />
 
-      <div className="w-full max-w-[420px] relative z-10 animate-fade-in">
+      <div className="w-full max-w-[420px] relative z-10 animate-fade-in" onKeyDown={handleKeyDown}>
         <div className={`bg-card rounded-2xl overflow-hidden border-[1.5px] ${isStudent ? "border-border" : "border-gold/30"}`}
           style={{ boxShadow: isStudent ? "0 40px 80px hsla(239,84%,67%,0.12)" : "0 40px 80px hsla(38,92%,50%,0.10)" }}>
           <div className="h-1" style={{
