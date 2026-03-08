@@ -39,39 +39,76 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
     setSpeaking(true);
-    // Strip LaTeX for speech
-    const clean = text
-      .replace(/\$\$[\s\S]*?\$\$/g, "")
-      .replace(/\$[^\$]*?\$/g, "")
-      .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
-      .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
-      .replace(/\\[a-zA-Z]+/g, "")
-      .replace(/[{}]/g, "")
-      .replace(/→/g, "")
-      .replace(/\n+/g, ". ")
-      .substring(0, 600);
-    const u = new SpeechSynthesisUtterance(clean);
-    // Prefer Cameroonian locale, fallback to general FR/EN
-    u.lang = fr ? "fr-CM" : "en-CM";
-    u.rate = 0.85;
-    u.pitch = 1.05;
 
-    const voices = speechSynthesis.getVoices();
-    // Try to find a voice matching Cameroonian locale first, then general
-    const v = fr
-      ? voices.find((v) => v.lang === "fr-CM") ||
-        voices.find((v) => v.lang === "fr-FR" && v.name.includes("Google")) ||
-        voices.find((v) => v.lang.startsWith("fr"))
-      : voices.find((v) => v.lang === "en-CM") ||
-        voices.find((v) => v.lang === "en-NG") ||
-        voices.find((v) => v.lang === "en-GH") ||
-        voices.find((v) => v.lang === "en-ZA") ||
-        voices.find((v) => v.lang === "en-GB" && v.name.includes("Google")) ||
-        voices.find((v) => v.lang.startsWith("en"));
-    if (v) u.voice = v;
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
-    speechSynthesis.speak(u);
+    // Clean LaTeX and markdown for natural speech
+    const clean = text
+      .replace(/\$\$[\s\S]*?\$\$/g, (m) => {
+        // Extract readable math from display blocks
+        return m.replace(/\$\$/g, "").replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
+          .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
+          .replace(/\\(times|cdot)/g, fr ? " fois " : " times ")
+          .replace(/\\(pm)/g, fr ? " plus ou moins " : " plus or minus ")
+          .replace(/\\(leq|le)/g, fr ? " inférieur ou égal à " : " less than or equal to ")
+          .replace(/\\(geq|ge)/g, fr ? " supérieur ou égal à " : " greater than or equal to ")
+          .replace(/\\(neq|ne)/g, fr ? " différent de " : " not equal to ")
+          .replace(/\\(approx)/g, fr ? " environ " : " approximately ")
+          .replace(/\\[a-zA-Z]+/g, " ").replace(/[{}^_]/g, " ").trim();
+      })
+      .replace(/\$([^\$]*?)\$/g, (_m, inner) => {
+        return inner
+          .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
+          .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
+          .replace(/\\(times|cdot)/g, fr ? " fois " : " times ")
+          .replace(/\\(pm)/g, fr ? " plus ou moins " : " plus or minus ")
+          .replace(/\\[a-zA-Z]+/g, " ").replace(/[{}^_]/g, " ").trim();
+      })
+      .replace(/\*\*([^*]+)\*\*/g, "$1")   // bold
+      .replace(/\*([^*]+)\*/g, "$1")         // italic
+      .replace(/#{1,3}\s*/g, "")             // headings
+      .replace(/→/g, fr ? " donne " : " gives ")
+      .replace(/\n{2,}/g, "... ")            // paragraph breaks → pauses
+      .replace(/\n/g, ". ")                  // line breaks → sentence pauses
+      .replace(/\s{2,}/g, " ")
+      .trim()
+      .substring(0, 800);
+
+    // Split into sentences for smoother delivery
+    const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+
+    let idx = 0;
+    const speakNext = () => {
+      if (idx >= sentences.length) { setSpeaking(false); return; }
+      const sentence = sentences[idx].trim();
+      idx++;
+      if (!sentence) { speakNext(); return; }
+
+      const u = new SpeechSynthesisUtterance(sentence);
+      u.lang = fr ? "fr-FR" : "en-GB";
+      u.rate = 0.92;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+
+      const voices = speechSynthesis.getVoices();
+      const v = fr
+        ? voices.find((v) => v.lang === "fr-CM") ||
+          voices.find((v) => v.lang === "fr-FR" && v.name.toLowerCase().includes("google")) ||
+          voices.find((v) => v.lang === "fr-FR") ||
+          voices.find((v) => v.lang.startsWith("fr"))
+        : voices.find((v) => v.lang === "en-CM") ||
+          voices.find((v) => v.lang === "en-GB" && v.name.toLowerCase().includes("google")) ||
+          voices.find((v) => v.lang === "en-GB") ||
+          voices.find((v) => v.lang === "en-US" && v.name.toLowerCase().includes("google")) ||
+          voices.find((v) => v.lang.startsWith("en"));
+      if (v) u.voice = v;
+
+      u.onend = () => {
+        // Small pause between sentences for natural cadence
+        setTimeout(speakNext, 150);
+      };
+      u.onerror = () => { setSpeaking(false); };
+      speechSynthesis.speak(u);
+    };
+    speakNext();
   }
 
   async function send(txt?: string) {
