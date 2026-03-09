@@ -288,7 +288,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     : (fr ? "En ligne • IA + Voix 🇨🇲" : "Online • AI + Voice 🇨🇲");
 
   return (
-    <div className="absolute inset-0 flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
+    <div className="h-full w-full flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
       {/* Hidden file inputs */}
       <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileSelect(e, "pdf")} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
@@ -393,7 +393,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
         )}
 
         {/* Input */}
-        <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border">
+        <div className="flex items-center gap-2 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] flex-shrink-0 border-t border-border bg-card">
           <button onClick={() => setShowAttach(!showAttach)}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-lg cursor-pointer transition-all border ${
               showAttach ? "border-secondary bg-secondary/20 text-secondary" : "border-border bg-muted text-muted-foreground hover:bg-muted/80"
