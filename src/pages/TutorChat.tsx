@@ -173,7 +173,8 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       },
       onDone: () => {
         setBusy(false);
-        if (assistantText) speak(assistantText);
+        // Auto-speak removed: mobile browsers block speechSynthesis after async ops.
+        // Users can tap the "Listen" button on each message instead.
       },
       onError: (err) => {
         setMsgs((prev) => {
