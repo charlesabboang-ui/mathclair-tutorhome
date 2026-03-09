@@ -14,6 +14,7 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   loading?: boolean;
+  image?: string;
 }
 
 export default function TutorChat({ lang, fr, tutorMsg }: Props) {
@@ -21,17 +22,20 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   const [msgs, setMsgs] = useState<Message[]>([{
     id: 0, role: "assistant",
     text: fr
-      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques à domicile. Posez votre question par texte ou par voix !`
-      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your math tutor at Home. Ask any question by text or voice!`,
+      ? `Bonjour ${profile?.name?.split(" ")[0] || ""} ! 🎓 Je suis Clair, votre tuteur en mathématiques à domicile. Posez votre question par texte, par voix, ou envoyez une photo de votre exercice !`
+      : `Hello ${profile?.name?.split(" ")[0] || ""}! 🎓 I'm Clair, your math tutor at Home. Ask any question by text, voice, or send a photo of your exercise!`,
   }]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [voiceGender, setVoiceGender] = useState<"female" | "male">("female");
   const [rec, setRec] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [showAttach, setShowAttach] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
@@ -44,7 +48,6 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     // Clean LaTeX and markdown for natural speech
     const clean = text
       .replace(/\$\$[\s\S]*?\$\$/g, (m) => {
-        // Extract readable math from display blocks
         return m.replace(/\$\$/g, "").replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
           .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
           .replace(/\\(times|cdot)/g, fr ? " fois " : " times ")
@@ -63,17 +66,16 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           .replace(/\\(pm)/g, fr ? " plus ou moins " : " plus or minus ")
           .replace(/\\[a-zA-Z]+/g, " ").replace(/[{}^_]/g, " ").trim();
       })
-      .replace(/\*\*([^*]+)\*\*/g, "$1")   // bold
-      .replace(/\*([^*]+)\*/g, "$1")         // italic
-      .replace(/#{1,3}\s*/g, "")             // headings
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/#{1,3}\s*/g, "")
       .replace(/→/g, fr ? " donne " : " gives ")
-      .replace(/\n{2,}/g, "... ")            // paragraph breaks → pauses
-      .replace(/\n/g, ". ")                  // line breaks → sentence pauses
+      .replace(/\n{2,}/g, "... ")
+      .replace(/\n/g, ". ")
       .replace(/\s{2,}/g, " ")
       .trim()
       .substring(0, 800);
 
-    // Split into sentences for smoother delivery
     const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
 
     let idx = 0;
@@ -84,30 +86,40 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       if (!sentence) { speakNext(); return; }
 
       const u = new SpeechSynthesisUtterance(sentence);
-      u.lang = fr ? "fr-FR" : "en-GB";
+      u.lang = fr ? "fr-CM" : "en-NG"; // Cameroonian French / Nigerian English for African accent
       u.rate = 0.92;
       u.pitch = 1.0;
       u.volume = 1.0;
 
       const voices = speechSynthesis.getVoices();
       const isFemale = voiceGender === "female";
-      // Helper: check if voice name hints at gender
-      const femaleHints = ["female", "woman", "fiona", "samantha", "victoria", "alice", "amelie", "marie", "google uk english female", "google français"];
-      const maleHints = ["male", "man", "daniel", "thomas", "james", "google uk english male"];
+      
+      // African locale preferences (Cameroon, Nigeria, South Africa, Kenya, Ghana)
+      const africanLocales = ["cm", "ng", "za", "ke", "gh"];
+      const femaleHints = ["female", "woman", "fiona", "zira", "amaka", "chioma", "adaeze", "ngozi", "aisha"];
+      const maleHints = ["male", "man", "chidi", "emeka", "kwame", "kofi", "mandela", "david"];
+      
       const matchesGender = (v: SpeechSynthesisVoice) => {
         const n = v.name.toLowerCase();
         return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
       };
 
-      const langVoices = voices.filter(v => fr ? v.lang.startsWith("fr") : v.lang.startsWith("en"));
-      const genderMatch = langVoices.filter(matchesGender);
-      const v = genderMatch[0] || langVoices.find(v => v.name.toLowerCase().includes("google")) || langVoices[0];
+      const isAfrican = (v: SpeechSynthesisVoice) => {
+        const locale = v.lang.toLowerCase();
+        return africanLocales.some(loc => locale.includes(loc));
+      };
+
+      // Priority: African voice matching gender > Any African voice > Language voice matching gender > Any language voice
+      const langCode = fr ? "fr" : "en";
+      const allLangVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
+      const africanVoices = allLangVoices.filter(isAfrican);
+      const africanGenderMatch = africanVoices.filter(matchesGender);
+      const genderMatch = allLangVoices.filter(matchesGender);
+      
+      const v = africanGenderMatch[0] || africanVoices[0] || genderMatch[0] || allLangVoices[0];
       if (v) u.voice = v;
 
-      u.onend = () => {
-        // Small pause between sentences for natural cadence
-        setTimeout(speakNext, 150);
-      };
+      u.onend = () => setTimeout(speakNext, 150);
       u.onerror = () => { setSpeaking(false); };
       speechSynthesis.speak(u);
     };
@@ -125,7 +137,6 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     setMsgs((m) => [...m, userMsg, { id: id + 1, role: "assistant", text: "", loading: true }]);
     setBusy(true);
 
-    // Build messages for API
     const apiMessages = msgs
       .filter((m) => !m.loading)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.text }));
@@ -170,7 +181,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     if (rec) { recRef.current?.stop(); setRec(false); return; }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const r = new SR();
-    r.lang = fr ? "fr-CM" : "en-GB";
+    r.lang = fr ? "fr-CM" : "en-NG";
     r.interimResults = true;
     r.onresult = (e: any) => {
       let final = "", interim = "";
@@ -190,16 +201,67 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     setRec(true);
   }
 
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>, type: "image" | "pdf") {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (type === "image") {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        const id = Date.now();
+        setMsgs((m) => [...m, { 
+          id, 
+          role: "user", 
+          text: fr ? "📷 J'ai envoyé une photo de mon exercice" : "📷 I sent a photo of my exercise",
+          image: dataUrl 
+        }]);
+        // For now, just acknowledge - image analysis would need vision API
+        setTimeout(() => {
+          setMsgs((m) => [...m, {
+            id: id + 1,
+            role: "assistant",
+            text: fr 
+              ? "📸 J'ai bien reçu ta photo ! Pour l'instant, décris-moi ce que tu vois sur l'exercice et je t'aiderai à le résoudre étape par étape."
+              : "📸 I received your photo! For now, describe what you see on the exercise and I'll help you solve it step by step."
+          }]);
+        }, 500);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const id = Date.now();
+      setMsgs((m) => [...m, { 
+        id, 
+        role: "user", 
+        text: fr ? `📄 J'ai envoyé un PDF: ${file.name}` : `📄 I sent a PDF: ${file.name}` 
+      }]);
+      setTimeout(() => {
+        setMsgs((m) => [...m, {
+          id: id + 1,
+          role: "assistant",
+          text: fr
+            ? "📄 J'ai bien reçu ton fichier PDF ! Dis-moi quelle page ou quel exercice tu veux qu'on travaille ensemble."
+            : "📄 I received your PDF file! Tell me which page or exercise you want us to work on together."
+        }]);
+      }, 500);
+    }
+    setShowAttach(false);
+  }
+
   const QUICK = fr
     ? ["Comment résoudre $x^2 + 3x - 4 = 0$ ?", "Théorème de Pythagore", "Qu'est-ce que $\\frac{d}{dx}(x^n)$ ?", "Probabilité d'un dé"]
     : ["How to solve $x^2 + 3x - 4 = 0$?", "Explain Pythagorean theorem", "What is $\\frac{d}{dx}(x^n)$?", "Probability of a dice"];
 
   const status = busy ? (fr ? "⏳ Réfléchit…" : "⏳ Thinking…")
     : speaking ? (fr ? "🔊 Parle…" : "🔊 Speaking…")
-    : (fr ? "En ligne • IA + Voix" : "Online • AI + Voice");
+    : (fr ? "En ligne • IA + Voix 🇨🇲" : "Online • AI + Voice 🇨🇲");
 
   return (
     <div className="absolute inset-0 flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
+      {/* Hidden file inputs */}
+      <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileSelect(e, "pdf")} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
+
       {/* Chat panel */}
       <div className="flex-1 min-w-0 bg-card md:border md:border-border md:rounded-xl flex flex-col overflow-hidden">
         {/* Header */}
@@ -219,7 +281,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
                   className={`px-2 py-1 rounded-full text-[0.68rem] font-bold cursor-pointer border-none transition-all ${
                     voiceGender === g ? "bg-secondary text-secondary-foreground" : "bg-transparent text-muted-foreground"
                   }`}>
-                  {g === "female" ? "👩" : "👨"} {g === "female" ? (fr ? "Voix F" : "Female") : (fr ? "Voix M" : "Male")}
+                  {g === "female" ? "👩🏿" : "👨🏿"} {g === "female" ? (fr ? "Voix F" : "Female") : (fr ? "Voix M" : "Male")}
                 </button>
               ))}
             </div>
@@ -241,9 +303,12 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
                 <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
                   isUser ? "bg-gradient-to-br from-primary to-destructive" : "bg-gradient-to-br from-secondary to-emerald"
                 }`}>
-                  {isUser ? "🧑" : "🤖"}
+                  {isUser ? "🧑🏿" : "🤖"}
                 </div>
                 <div className="flex flex-col gap-1.5 min-w-0">
+                  {m.image && (
+                    <img src={m.image} alt="Exercise" className="max-w-[200px] rounded-lg border border-border" />
+                  )}
                   <div className={`px-3 py-2.5 text-sm leading-relaxed min-w-0 break-words ${
                     isUser ? "rounded-[13px_4px_13px_13px] bg-secondary" : "rounded-[4px_13px_13px_13px] bg-muted"
                   }`}>
@@ -276,8 +341,32 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           </div>
         )}
 
+        {/* Attachment menu */}
+        {showAttach && (
+          <div className="flex items-center gap-2 px-3 py-2 mx-3 mb-1 bg-muted border border-border rounded-xl flex-shrink-0 animate-fade-in">
+            <button onClick={() => cameraRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium hover:bg-secondary/10 transition-colors">
+              📷 {fr ? "Photo" : "Photo"}
+            </button>
+            <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = (e) => handleFileSelect(e as any, "image"); inp.click(); }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium hover:bg-secondary/10 transition-colors">
+              🖼️ {fr ? "Image" : "Image"}
+            </button>
+            <button onClick={() => fileRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium hover:bg-secondary/10 transition-colors">
+              📄 PDF
+            </button>
+            <button onClick={() => setShowAttach(false)}
+              className="ml-auto px-2 py-1 text-muted-foreground hover:text-foreground text-sm">✕</button>
+          </div>
+        )}
+
         {/* Input */}
         <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border">
+          <button onClick={() => setShowAttach(!showAttach)}
+            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-lg cursor-pointer transition-all border ${
+              showAttach ? "border-secondary bg-secondary/20 text-secondary" : "border-border bg-muted text-muted-foreground hover:bg-muted/80"
+            }`}>+</button>
           <button onClick={toggleMic}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
@@ -285,7 +374,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           <textarea ref={taRef} value={input}
             onChange={(e) => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 110) + "px"; }}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={fr ? "Posez votre question maths…" : "Ask any math question…"}
+            placeholder={fr ? "Posez votre question ou envoyez une photo…" : "Ask any question or send a photo…"}
             rows={1}
             className="flex-1 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[38px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
           <button onClick={() => send()} disabled={busy}
@@ -306,6 +395,20 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
                 <MathRenderer text={q} className="text-xs" />
               </button>
             ))}
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-xl p-3.5 flex-shrink-0">
+          <p className="font-display text-sm mb-2">📎 {fr ? "Envoyer un fichier" : "Send a file"}</p>
+          <p className="text-[0.70rem] text-muted-foreground mb-2.5">{fr ? "Prends en photo ton exercice ou envoie un PDF" : "Take a photo of your exercise or send a PDF"}</p>
+          <div className="flex gap-2">
+            <button onClick={() => cameraRef.current?.click()}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-muted border border-border rounded-lg text-xs font-medium hover:bg-secondary/10 transition-colors">
+              📷 {fr ? "Photo" : "Photo"}
+            </button>
+            <button onClick={() => fileRef.current?.click()}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-muted border border-border rounded-lg text-xs font-medium hover:bg-secondary/10 transition-colors">
+              📄 PDF
+            </button>
           </div>
         </div>
       </div>
