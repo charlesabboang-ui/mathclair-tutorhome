@@ -40,22 +40,9 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
 
-  // Ensure voices are loaded (mobile needs this)
-  useEffect(() => {
-    const loadVoices = () => speechSynthesis.getVoices();
-    loadVoices();
-    speechSynthesis.addEventListener?.("voiceschanged", loadVoices);
-    return () => speechSynthesis.removeEventListener?.("voiceschanged", loadVoices);
-  }, []);
-
   function speak(text: string) {
     if (!window.speechSynthesis) return;
-    
-    // Cancel any ongoing speech
     speechSynthesis.cancel();
-    
-    // CRITICAL: On mobile, we must start speech IMMEDIATELY in the user gesture context
-    // Create the first utterance right away before any processing
     setSpeaking(true);
 
     // Clean LaTeX and markdown for natural speech
@@ -90,70 +77,53 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       .substring(0, 800);
 
     const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
-    
-    // Get voices once
-    const voices = speechSynthesis.getVoices();
-    const isFemale = voiceGender === "female";
-    
-    // African locale preferences
-    const africanLocales = ["cm", "ng", "za", "ke", "gh"];
-    const femaleHints = ["female", "woman", "fiona", "zira", "amaka", "chioma", "adaeze", "ngozi", "aisha"];
-    const maleHints = ["male", "man", "chidi", "emeka", "kwame", "kofi", "mandela", "david"];
-    
-    const matchesGender = (v: SpeechSynthesisVoice) => {
-      const n = v.name.toLowerCase();
-      return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
-    };
 
-    const isAfrican = (v: SpeechSynthesisVoice) => {
-      const locale = v.lang.toLowerCase();
-      return africanLocales.some(loc => locale.includes(loc));
-    };
-
-    const langCode = fr ? "fr" : "en";
-    const allLangVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
-    const africanVoices = allLangVoices.filter(isAfrican);
-    const africanGenderMatch = africanVoices.filter(matchesGender);
-    const genderMatch = allLangVoices.filter(matchesGender);
-    
-    const selectedVoice = africanGenderMatch[0] || africanVoices[0] || genderMatch[0] || allLangVoices[0];
-
-    // MOBILE FIX: Speak the first sentence IMMEDIATELY in user gesture context
-    const firstSentence = sentences[0]?.trim();
-    if (!firstSentence) { setSpeaking(false); return; }
-    
-    const firstUtterance = new SpeechSynthesisUtterance(firstSentence);
-    firstUtterance.lang = fr ? "fr-FR" : "en-US"; // Use more widely supported locales
-    firstUtterance.rate = 0.92;
-    firstUtterance.pitch = 1.0;
-    firstUtterance.volume = 1.0;
-    if (selectedVoice) firstUtterance.voice = selectedVoice;
-    
-    let idx = 1; // Start from second sentence
-    
+    let idx = 0;
     const speakNext = () => {
       if (idx >= sentences.length) { setSpeaking(false); return; }
-      const sentence = sentences[idx]?.trim();
+      const sentence = sentences[idx].trim();
       idx++;
       if (!sentence) { speakNext(); return; }
 
       const u = new SpeechSynthesisUtterance(sentence);
-      u.lang = fr ? "fr-FR" : "en-US";
+      u.lang = fr ? "fr-CM" : "en-NG"; // Cameroonian French / Nigerian English for African accent
       u.rate = 0.92;
       u.pitch = 1.0;
       u.volume = 1.0;
-      if (selectedVoice) u.voice = selectedVoice;
+
+      const voices = speechSynthesis.getVoices();
+      const isFemale = voiceGender === "female";
+      
+      // African locale preferences (Cameroon, Nigeria, South Africa, Kenya, Ghana)
+      const africanLocales = ["cm", "ng", "za", "ke", "gh"];
+      const femaleHints = ["female", "woman", "fiona", "zira", "amaka", "chioma", "adaeze", "ngozi", "aisha"];
+      const maleHints = ["male", "man", "chidi", "emeka", "kwame", "kofi", "mandela", "david"];
+      
+      const matchesGender = (v: SpeechSynthesisVoice) => {
+        const n = v.name.toLowerCase();
+        return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
+      };
+
+      const isAfrican = (v: SpeechSynthesisVoice) => {
+        const locale = v.lang.toLowerCase();
+        return africanLocales.some(loc => locale.includes(loc));
+      };
+
+      // Priority: African voice matching gender > Any African voice > Language voice matching gender > Any language voice
+      const langCode = fr ? "fr" : "en";
+      const allLangVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
+      const africanVoices = allLangVoices.filter(isAfrican);
+      const africanGenderMatch = africanVoices.filter(matchesGender);
+      const genderMatch = allLangVoices.filter(matchesGender);
+      
+      const v = africanGenderMatch[0] || africanVoices[0] || genderMatch[0] || allLangVoices[0];
+      if (v) u.voice = v;
 
       u.onend = () => setTimeout(speakNext, 150);
       u.onerror = () => { setSpeaking(false); };
       speechSynthesis.speak(u);
     };
-    
-    firstUtterance.onend = () => setTimeout(speakNext, 150);
-    firstUtterance.onerror = () => { setSpeaking(false); };
-    
-    // Speak immediately - this happens in user gesture context
-    speechSynthesis.speak(firstUtterance);
+    speakNext();
   }
 
   async function send(txt?: string) {
@@ -189,8 +159,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       },
       onDone: () => {
         setBusy(false);
-        // Auto-speak removed: mobile browsers block speechSynthesis after async ops.
-        // Users can tap the "Listen" button on each message instead.
+        if (assistantText) speak(assistantText);
       },
       onError: (err) => {
         setMsgs((prev) => {
@@ -288,7 +257,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     : (fr ? "En ligne • IA + Voix 🇨🇲" : "Online • AI + Voice 🇨🇲");
 
   return (
-    <div className="h-full w-full flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
+    <div className="absolute inset-0 flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
       {/* Hidden file inputs */}
       <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileSelect(e, "pdf")} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
@@ -393,7 +362,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
         )}
 
         {/* Input */}
-        <div className="flex items-center gap-2 px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] flex-shrink-0 border-t border-border bg-card">
+        <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border">
           <button onClick={() => setShowAttach(!showAttach)}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-lg cursor-pointer transition-all border ${
               showAttach ? "border-secondary bg-secondary/20 text-secondary" : "border-border bg-muted text-muted-foreground hover:bg-muted/80"
