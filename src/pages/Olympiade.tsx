@@ -10,21 +10,21 @@ export default function Olympiade({ fr, setShowModal }: Props) {
   const [tab, setTab] = useState("student");
 
   const STUDENT_PERKS = [
-    ["🎓", fr ? "Apprentissage complet" : "Full Learning Access", fr ? "Tuteur IA illimité, tous les thèmes et exercices." : "Unlimited AI Tutor, all topics and exercises."],
-    ["🏆", fr ? "800+ problèmes d'olympiades" : "800+ Olympiad Problems", fr ? "AMC, CEMAC, Bac, GCE — tous niveaux confondus." : "AMC, CEMAC, Bac, GCE — all levels."],
-    ["📅", fr ? "Compétitions mensuelles" : "Monthly Competitions", fr ? "Chaque premier samedi du mois. Classement national." : "First Saturday monthly. National ranking."],
-    ["🥇", fr ? "Médailles et badges" : "Medals & Badges", fr ? "Bronze, Argent, Or, Platine — à collectionner." : "Bronze, Silver, Gold, Platinum."],
-    ["📜", fr ? "Certificats officiels" : "Official Certificates", fr ? "Reconnus au Cameroun et dans la zone CEMAC." : "Recognised across Cameroon & CEMAC."],
-    ["🧑‍🏫", fr ? "Conseiller personnel dédié" : "Personal Dedicated Counselor", fr ? "Un coach attitré pour guider votre parcours." : "A dedicated coach to guide your journey."],
+    ["🏆", "800+ Olympiad Problems", fr ? "AMC, CEMAC, Bac, GCE — tous niveaux." : "AMC, CEMAC, Bac, GCE — all levels."],
+    ["📅", "Monthly Competitions", fr ? "Premier samedi du mois. Classement national." : "First Saturday monthly. National ranking."],
+    ["🥇", "Medals & Badges", fr ? "Bronze, Argent, Or, Platine." : "Bronze, Silver, Gold, Platinum."],
+    ["📜", "Official Certificates", fr ? "Reconnus au Cameroun & CEMAC." : "Recognised across Cameroon & CEMAC."],
+    ["👨‍🏫", "Expert Sessions", fr ? "Avec champions nationaux." : "With national math champions."],
+    ["🧠", "AI Strategy Coach", fr ? "Techniques de compétition." : "Competition thinking training."],
   ];
 
   const PARENT_PERKS = [
-    ["📊", fr ? "Rapports détaillés" : "Detailed Reports", fr ? "Rapport mensuel PDF avec graphiques et recommandations." : "Monthly PDF report with graphs and recommendations."],
-    ["📱", fr ? "Tableau de bord en direct" : "Real-Time Dashboard", fr ? "Suivez chaque session et score en temps réel." : "Track every session and score — live."],
-    ["📞", fr ? "Appel mensuel avec le coach" : "Monthly Coaching Call", fr ? "Appel vidéo de 15 min avec le conseiller dédié." : "15-min video call with the dedicated counselor."],
-    ["🏅", fr ? "Alertes compétitions" : "Competition Alerts", fr ? "Notifications WhatsApp des médailles et classements." : "WhatsApp alerts for medals and ranks."],
-    ["🎓", fr ? "Orientation scolaire" : "University Guidance", fr ? "Conseils pour l'ENS, l'ENSET, Polytechnique." : "ENS, ENSET, Polytechnique guidance."],
-    ["🔒", fr ? "Contrôles avancés" : "Premium Controls", fr ? "Horaires, conversations IA, temps d'écran." : "Schedules, AI conversations, screen time."],
+    ["📱", "Real-Time Dashboard", fr ? "Chaque session et score — en direct." : "Every session and score — live."],
+    ["📞", "Monthly Coaching Call", fr ? "Appel vidéo 15 min avec un coach." : "15-min video call with a coach."],
+    ["🏅", "Competition Alerts", fr ? "Alertes WhatsApp médailles et rang." : "WhatsApp alerts for medals and ranks."],
+    ["📄", "Monthly PDF Report", fr ? "Rapport avec graphiques et recommandations." : "Report with graphs and next steps."],
+    ["🎓", "University Guidance", fr ? "Conseils ENS, ENSET, Polytechnique." : "ENS, ENSET, Polytechnique guidance."],
+    ["🔒", "Premium Controls", fr ? "Horaires, conversations IA, écran." : "Schedules, AI conversations, screen time."],
   ];
 
   const perks = tab === "student" ? STUDENT_PERKS : PARENT_PERKS;
@@ -37,14 +37,14 @@ export default function Olympiade({ fr, setShowModal }: Props) {
           style={{ background: "radial-gradient(circle, hsla(38,92%,50%,0.16) 0%, transparent 68%)" }} />
         <div className="float-anim text-5xl mb-3 inline-block">🏆</div>
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-4 py-1.5 rounded-full text-xs font-bold mb-4">
-          ⚡ {fr ? "FORMULE EXCLUSIVE MATHCLAIR" : "MATHCLAIR EXCLUSIVE PLAN"}
+          ⚡ {fr ? "PLAN EXCLUSIF MATHCLAIR" : "MATHCLAIR EXCLUSIVE PLAN"}
         </div>
         <h1 className="font-display text-2xl md:text-4xl leading-tight mb-3">
-          {fr ? "La formule " : "The "}<span className="gold-text">Olympiade</span>
+          {fr ? "Le Plan " : "The "}<span className="gold-text">Olympiade</span>
         </h1>
         <p className="text-sm text-muted2 max-w-md mx-auto leading-relaxed mb-6">
-          {fr ? "Apprentissage complet + compétitions + rapports aux parents + conseiller personnel."
-            : "Full learning + competitions + parent reports + personal counselor."}
+          {fr ? "Compétitions mensuelles, médailles, certificats & coaching d'élite."
+            : "Monthly competitions, medals, certificates & elite coaching."}
         </p>
         <div className="inline-flex bg-muted rounded-full p-1 gap-1">
           {[
@@ -73,60 +73,25 @@ export default function Olympiade({ fr, setShowModal }: Props) {
         </div>
       </div>
 
-      <div className="px-4 md:px-5 py-10 max-w-4xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* Free */}
+      <div className="px-4 md:px-5 py-10 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-card border border-border rounded-2xl p-5">
-            <p className="font-display text-sm mb-2">{fr ? "Gratuit" : "Free"}</p>
+            <p className="font-display text-sm mb-2">Free</p>
             <p className="font-display text-3xl mb-4">0 <span className="text-sm text-muted-foreground font-body">FCFA</span></p>
-            {(fr
-              ? ["Tuteur IA (20 msg/jour)", "5 thèmes", "10 exercices"]
-              : ["AI Tutor (20 msgs/day)", "5 Topics", "10 Practice Questions"]
-            ).map((f) => (
+            {["AI Tutor (20 msgs/day)", "5 Topics", "10 Practice Questions"].map((f) => (
               <p key={f} className="text-xs text-muted2 mb-1.5">✅ {f}</p>
             ))}
-            {(fr
-              ? ["Tous les thèmes", "Compétitions", "Conseiller dédié"]
-              : ["All Topics", "Competitions", "Personal Counselor"]
-            ).map((f) => (
+            {["Olympiad Problems", "Competitions", "Certificates"].map((f) => (
               <p key={f} className="text-xs text-muted-foreground/50 mb-1.5">❌ {f}</p>
             ))}
           </div>
-
-          {/* Learn */}
-          <div className="bg-card border-2 border-secondary rounded-2xl p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-secondary to-secondary/50" />
-            <p className="font-display text-sm text-secondary mb-2">{fr ? "Apprentissage" : "Learn"}</p>
-            <p className="font-display text-3xl text-secondary mb-4">1 700 <span className="text-sm text-muted-foreground font-body">FCFA/{fr ? "mois" : "month"}</span></p>
-            {(fr
-              ? ["Tuteur IA illimité", "Tous les thèmes", "Exercices illimités", "Préparation examens", "Suivi de progression"]
-              : ["Unlimited AI Tutor", "All Topics", "Unlimited Exercises", "Exam Preparation", "Progress Tracking"]
-            ).map((f) => (
-              <p key={f} className="text-xs text-muted2 mb-1.5">✅ {f}</p>
-            ))}
-            {(fr
-              ? ["Compétitions", "Conseiller dédié"]
-              : ["Competitions", "Personal Counselor"]
-            ).map((f) => (
-              <p key={f} className="text-xs text-muted-foreground/50 mb-1.5">❌ {f}</p>
-            ))}
-            <button onClick={() => setShowModal(true)}
-              className="w-full mt-4 py-3 rounded-full border-none bg-secondary text-secondary-foreground font-bold text-sm cursor-pointer">
-              🎓 {fr ? "S'abonner" : "Subscribe"}
-            </button>
-          </div>
-
-          {/* Olympiade */}
           <div className="rounded-2xl p-5 relative overflow-hidden border-2 border-primary"
             style={{ background: "linear-gradient(140deg, hsl(28,30%,5%), hsl(222,47%,11%))" }}>
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-gold-light to-primary" />
             <div className="absolute top-3 right-3 bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full text-[0.64rem] font-extrabold">⭐ BEST</div>
             <p className="font-display text-sm text-primary mb-2">Olympiade</p>
-            <p className="font-display text-3xl text-primary mb-4">5 000 <span className="text-sm text-muted-foreground font-body">FCFA/{fr ? "mois" : "month"}</span></p>
-            {(fr
-              ? ["Tout le plan Apprentissage", "Compétitions mensuelles", "Rapports détaillés parents", "Conseiller personnel dédié", "Médailles & certificats", "800+ problèmes olympiades"]
-              : ["Everything in Learn plan", "Monthly Competitions", "Detailed Parent Reports", "Personal Dedicated Counselor", "Medals & Certificates", "800+ Olympiad Problems"]
-            ).map((f) => (
+            <p className="font-display text-3xl text-primary mb-4">5 000 <span className="text-sm text-muted-foreground font-body">FCFA/mois</span></p>
+            {["Unlimited AI Tutor", "All Topics + A-Level", "800+ Olympiad Questions", "Monthly Competitions", "Medals & Certificates", "Expert Sessions"].map((f) => (
               <p key={f} className="text-xs text-muted2 mb-1.5">✅ {f}</p>
             ))}
             <button onClick={() => setShowModal(true)}
@@ -142,10 +107,10 @@ export default function Olympiade({ fr, setShowModal }: Props) {
         <h2 className="font-display text-xl mb-2">{fr ? "Prêt à rejoindre l'élite ?" : "Ready to join the elite?"}</h2>
         <button onClick={() => setShowModal(true)}
           className="glow-btn px-10 py-3 rounded-full border-none bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-extrabold text-base cursor-pointer">
-          🏆 {fr ? "S'abonner à la formule Olympiade" : "Subscribe to Olympiade Plan"}
+          🏆 {fr ? "S'abonner au Plan Olympiade" : "Subscribe to Olympiade Plan"}
         </button>
         <p className="text-[0.72rem] text-muted-foreground mt-3">
-          {fr ? "À partir de 1 700 FCFA/mois · MTN MoMo & Orange Money" : "From 1,700 FCFA/month · MTN MoMo & Orange Money"}
+          5 000 FCFA/mois · MTN MoMo & Orange Money
         </p>
       </div>
     </div>

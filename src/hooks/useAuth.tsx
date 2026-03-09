@@ -12,7 +12,6 @@ interface Profile {
   child_name: string;
   child_id: string | null;
   lang: string;
-  created_at?: string;
 }
 
 interface AuthContextType {
@@ -20,11 +19,10 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (phone: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => Promise<{ error: string | null }>;
-  signIn: (phone: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
-  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -71,14 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const formatPhoneAsEmail = (phone: string) => {
-    const cleanPhone = phone.replace(/[^0-9+]/g, '');
-    return `${cleanPhone}@mathclair.app`;
-  };
-
-  const signUp = async (phone: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => {
+  const signUp = async (email: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => {
     const { error } = await supabase.auth.signUp({
-      email: formatPhoneAsEmail(phone),
+      email,
       password,
       options: {
         data: { name },
@@ -102,11 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const signIn = async (phone: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ 
-      email: formatPhoneAsEmail(phone), 
-      password 
-    });
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     return { error: null };
   };
@@ -124,12 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchProfile(user.id);
   };
 
-  const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signUp, signIn, signOut, updateProfile, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signUp, signIn, signOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
