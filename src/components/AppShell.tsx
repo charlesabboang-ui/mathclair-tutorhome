@@ -7,6 +7,7 @@ import Practice from "@/pages/Practice";
 import Exams from "@/pages/Exams";
 import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
+import Profile from "@/pages/Profile";
 import SubscribeModal from "@/components/SubscribeModal";
 
 const NAV = [
@@ -16,6 +17,7 @@ const NAV = [
   { icon: "✏️", label: "Practice", id: "practice" },
   { icon: "🎯", label: "Exams", id: "exams" },
   { icon: "🏆", label: "Olympiade", id: "olympiade" },
+  { icon: "👤", label: "Profile", id: "profile" },
 ];
 
 const TITLES: Record<string, Record<string, string>> = {
@@ -26,6 +28,7 @@ const TITLES: Record<string, Record<string, string>> = {
   exams: { en: "Exam Preparation", fr: "Préparation aux Examens" },
   parent: { en: "Parental Control", fr: "Contrôle Parental" },
   olympiade: { en: "🏆 Olympiade Plan", fr: "🏆 Plan Olympiade" },
+  profile: { en: "My Profile", fr: "Mon Profil" },
 };
 
 export default function AppShell() {
@@ -56,6 +59,7 @@ export default function AppShell() {
       case "exams": return <Exams {...ctx} />;
       case "olympiade": return <Olympiade lang={lang} fr={fr} setShowModal={setShowModal} />;
       case "parent": return <ParentControl lang={lang} fr={fr} />;
+      case "profile": return <Profile lang={lang} fr={fr} />;
       default: return <Dashboard {...ctx} />;
     }
   };
