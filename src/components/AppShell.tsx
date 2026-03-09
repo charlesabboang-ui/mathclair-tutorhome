@@ -163,8 +163,9 @@ export default function AppShell() {
                   }`}>{l.toUpperCase()}</button>
               ))}
             </div>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center font-bold text-[0.72rem] cursor-pointer flex-shrink-0"
-              title={profile?.name}>
+            <div onClick={() => goTo("profile")} 
+              className="w-7 h-7 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center font-bold text-[0.72rem] cursor-pointer flex-shrink-0 hover:ring-2 hover:ring-secondary/50 transition-all"
+              title={fr ? "Mon Profil" : "My Profile"}>
               {initials}
             </div>
           </div>
