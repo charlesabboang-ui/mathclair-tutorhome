@@ -9,7 +9,6 @@ import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
 import Profile from "@/pages/Profile";
 import SubscribeModal from "@/components/SubscribeModal";
-import FeedbackModal from "@/components/FeedbackModal";
 
 const NAV = [
   { icon: "🏠", label: "Dashboard", id: "dashboard" },
@@ -38,7 +37,6 @@ export default function AppShell() {
   const [lang, setLang] = useState<"en" | "fr">((profile?.lang as "en" | "fr") || "en");
   const [mobileNav, setMobileNav] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
   const [tutorMsg, setTutorMsg] = useState("");
 
   const fr = lang === "fr";
@@ -119,11 +117,7 @@ export default function AppShell() {
             <p className="text-[0.68rem] text-primary font-bold">{fr ? "Dès" : "From"} 1 700 FCFA/{fr ? "mois" : "mo"} →</p>
           </div>
         )}
-        <div className="p-2 border-t border-border flex-shrink-0 space-y-1.5">
-          <button onClick={() => setShowFeedback(true)}
-            className="w-full py-1.5 px-3 rounded-full border border-secondary/30 bg-transparent text-secondary text-xs cursor-pointer font-bold hover:bg-secondary/10 transition-colors">
-            💬 {fr ? "Donner un avis" : "Give Feedback"}
-          </button>
+        <div className="p-2 border-t border-border flex-shrink-0">
           <button onClick={signOut}
             className="w-full py-1.5 px-3 rounded-full border border-border bg-transparent text-muted-foreground text-xs cursor-pointer font-bold hover:bg-muted transition-colors">
             ← {fr ? "Déconnexion" : "Sign Out"}
@@ -207,7 +201,6 @@ export default function AppShell() {
       </div>
 
       {showModal && <SubscribeModal lang={lang} fr={fr} onClose={() => setShowModal(false)} />}
-      {showFeedback && <FeedbackModal fr={fr} onClose={() => setShowFeedback(false)} />}
     </div>
   );
 }
