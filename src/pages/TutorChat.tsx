@@ -40,9 +40,23 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
 
+  // Ensure voices are loaded (mobile needs this)
+  useEffect(() => {
+    const loadVoices = () => speechSynthesis.getVoices();
+    loadVoices();
+    speechSynthesis.addEventListener?.("voiceschanged", loadVoices);
+    return () => speechSynthesis.removeEventListener?.("voiceschanged", loadVoices);
+  }, []);
+
   function speak(text: string) {
     if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
+
+    // Create and speak a silent utterance first to "unlock" on mobile
+    const unlock = new SpeechSynthesisUtterance("");
+    unlock.volume = 0;
+    speechSynthesis.speak(unlock);
+
     setSpeaking(true);
 
     // Clean LaTeX and markdown for natural speech
@@ -159,7 +173,8 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       },
       onDone: () => {
         setBusy(false);
-        if (assistantText) speak(assistantText);
+        // Auto-speak removed: mobile browsers block speechSynthesis after async ops.
+        // Users can tap the "Listen" button on each message instead.
       },
       onError: (err) => {
         setMsgs((prev) => {
