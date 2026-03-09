@@ -108,9 +108,9 @@ export default function AppShell() {
             style={{ background: "linear-gradient(135deg, hsl(28,30%,5%), hsl(222,47%,11%))" }}>
             <p className="text-[0.70rem] text-primary font-bold mb-1">🏆 Plan Olympiade</p>
             <p className="text-[0.65rem] text-muted2 leading-snug mb-1.5">
-              {fr ? "Compétitions mensuelles & certificats" : "Monthly competitions & certificates"}
+              {fr ? "Apprentissage + compétitions + conseiller dédié" : "Learning + competitions + personal counselor"}
             </p>
-            <p className="text-[0.68rem] text-primary font-bold">5 000 FCFA/mois →</p>
+            <p className="text-[0.68rem] text-primary font-bold">{fr ? "Dès" : "From"} 1 700 FCFA/{fr ? "mois" : "mo"} →</p>
           </div>
         )}
         <div className="p-2 border-t border-border flex-shrink-0">

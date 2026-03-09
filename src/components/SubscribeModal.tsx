@@ -9,10 +9,17 @@ interface Props {
 
 export default function SubscribeModal({ fr, onClose }: Props) {
   const { profile } = useAuth();
+  const [plan, setPlan] = useState<"learn" | "olympiade">("olympiade");
   const [cycle, setCycle] = useState("monthly");
   const [name, setName] = useState(profile?.name || "");
   const [phone, setPhone] = useState("");
   const [done, setDone] = useState(false);
+
+  const prices = {
+    learn: { monthly: "1 700", annual: "15 300", save: fr ? "💰 −5 100" : "💰 Save 5.1k" },
+    olympiade: { monthly: "5 000", annual: "45 000", save: fr ? "💰 −15 000" : "💰 Save 15k" },
+  };
+  const p = prices[plan];
 
   return (
     <div className="fixed inset-0 bg-background/80 z-[200] flex items-center justify-center p-5"
@@ -23,8 +30,10 @@ export default function SubscribeModal({ fr, onClose }: Props) {
         <div className="p-6 md:p-7">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🏆</span>
-              <p className="font-display text-base text-primary">{fr ? "Plan Olympiade" : "Olympiade Plan"}</p>
+              <span className="text-2xl">{plan === "olympiade" ? "🏆" : "🎓"}</span>
+              <p className="font-display text-base text-primary">
+                {plan === "olympiade" ? (fr ? "Formule Olympiade" : "Olympiade Plan") : (fr ? "Formule Apprentissage" : "Learn Plan")}
+              </p>
             </div>
             <button onClick={onClose} className="bg-transparent border-none text-muted-foreground text-xl cursor-pointer">✕</button>
           </div>
@@ -32,10 +41,10 @@ export default function SubscribeModal({ fr, onClose }: Props) {
           {done ? (
             <div className="text-center py-4">
               <div className="text-5xl mb-3.5">🎉</div>
-              <h3 className="font-display text-xl text-primary mb-2.5">{fr ? "Bienvenue dans l'élite !" : "Welcome to the elite!"}</h3>
+              <h3 className="font-display text-xl text-primary mb-2.5">{fr ? "Bienvenue !" : "Welcome!"}</h3>
               <p className="text-muted2 text-sm leading-relaxed mb-6">
-                {fr ? `Merci ${name} ! Notre équipe vous contacte au ${phone} dans les 24h.`
-                  : `Thank you, ${name}! Our team will contact you at ${phone} within 24h.`}
+                {fr ? `Merci ${name} ! Notre équipe vous contactera au ${phone} dans les 24h pour activer votre abonnement.`
+                  : `Thank you, ${name}! Our team will contact you at ${phone} within 24h to activate your subscription.`}
               </p>
               <button onClick={onClose}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-primary to-gold-light text-primary-foreground font-bold text-sm border-none cursor-pointer">
@@ -44,21 +53,39 @@ export default function SubscribeModal({ fr, onClose }: Props) {
             </div>
           ) : (
             <>
+              {/* Plan selector */}
+              <div className="grid grid-cols-2 gap-2.5 mb-4">
+                {([
+                  { k: "learn" as const, l: fr ? "🎓 Apprentissage" : "🎓 Learn", p: "1 700 FCFA" },
+                  { k: "olympiade" as const, l: fr ? "🏆 Olympiade" : "🏆 Olympiade", p: "5 000 FCFA" },
+                ] as const).map(({ k, l, p: price }) => (
+                  <div key={k} onClick={() => setPlan(k)}
+                    className={`p-3 rounded-xl cursor-pointer transition-all border-2 ${
+                      plan === k ? "border-primary bg-primary/10" : "border-border bg-muted"
+                    }`}>
+                    <p className={`text-sm font-bold mb-0.5 ${plan === k ? "text-primary" : "text-foreground"}`}>{l}</p>
+                    <p className="text-xs text-muted-foreground">{price}/{fr ? "mois" : "mo"}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Billing cycle */}
               <div className="grid grid-cols-2 gap-2.5 mb-5">
                 {[
-                  { k: "monthly", l: fr ? "Mensuel" : "Monthly", p: "5 000 FCFA/mois" },
-                  { k: "annual", l: fr ? "Annuel" : "Annual", p: "45 000 FCFA/an", note: fr ? "💰 −15 000" : "💰 Save 15k" },
-                ].map(({ k, l, p, note }) => (
+                  { k: "monthly", l: fr ? "Mensuel" : "Monthly", pr: `${p.monthly} FCFA/${fr ? "mois" : "mo"}` },
+                  { k: "annual", l: fr ? "Annuel" : "Annual", pr: `${p.annual} FCFA/${fr ? "an" : "yr"}`, note: p.save },
+                ].map(({ k, l, pr, note }) => (
                   <div key={k} onClick={() => setCycle(k)}
                     className={`p-3 rounded-xl cursor-pointer transition-all border-2 ${
-                      cycle === k ? "border-primary bg-primary/10" : "border-border bg-muted"
+                      cycle === k ? "border-secondary bg-secondary/10" : "border-border bg-muted"
                     }`}>
-                    <p className={`text-sm font-bold mb-0.5 ${cycle === k ? "text-primary" : "text-foreground"}`}>{l}</p>
-                    <p className="text-xs text-muted-foreground">{p}</p>
+                    <p className={`text-sm font-bold mb-0.5 ${cycle === k ? "text-secondary" : "text-foreground"}`}>{l}</p>
+                    <p className="text-xs text-muted-foreground">{pr}</p>
                     {note && <p className="text-[0.66rem] text-primary font-bold mt-1">{note}</p>}
                   </div>
                 ))}
               </div>
+
               <input value={name} onChange={(e) => setName(e.target.value)}
                 placeholder={fr ? "Nom complet" : "Full name"}
                 className="w-full bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm outline-none mb-2.5 focus:border-primary/50 transition-colors" />
