@@ -288,7 +288,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     : (fr ? "En ligne • IA + Voix 🇨🇲" : "Online • AI + Voice 🇨🇲");
 
   return (
-    <div className="absolute inset-0 flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
+    <div className="h-full w-full flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
       {/* Hidden file inputs */}
       <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileSelect(e, "pdf")} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileSelect(e, "image")} />
