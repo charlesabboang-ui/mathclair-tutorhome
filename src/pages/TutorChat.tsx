@@ -50,13 +50,12 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
 
   function speak(text: string) {
     if (!window.speechSynthesis) return;
+    
+    // Cancel any ongoing speech
     speechSynthesis.cancel();
-
-    // Create and speak a silent utterance first to "unlock" on mobile
-    const unlock = new SpeechSynthesisUtterance("");
-    unlock.volume = 0;
-    speechSynthesis.speak(unlock);
-
+    
+    // CRITICAL: On mobile, we must start speech IMMEDIATELY in the user gesture context
+    // Create the first utterance right away before any processing
     setSpeaking(true);
 
     // Clean LaTeX and markdown for natural speech
@@ -91,53 +90,70 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       .substring(0, 800);
 
     const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+    
+    // Get voices once
+    const voices = speechSynthesis.getVoices();
+    const isFemale = voiceGender === "female";
+    
+    // African locale preferences
+    const africanLocales = ["cm", "ng", "za", "ke", "gh"];
+    const femaleHints = ["female", "woman", "fiona", "zira", "amaka", "chioma", "adaeze", "ngozi", "aisha"];
+    const maleHints = ["male", "man", "chidi", "emeka", "kwame", "kofi", "mandela", "david"];
+    
+    const matchesGender = (v: SpeechSynthesisVoice) => {
+      const n = v.name.toLowerCase();
+      return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
+    };
 
-    let idx = 0;
+    const isAfrican = (v: SpeechSynthesisVoice) => {
+      const locale = v.lang.toLowerCase();
+      return africanLocales.some(loc => locale.includes(loc));
+    };
+
+    const langCode = fr ? "fr" : "en";
+    const allLangVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
+    const africanVoices = allLangVoices.filter(isAfrican);
+    const africanGenderMatch = africanVoices.filter(matchesGender);
+    const genderMatch = allLangVoices.filter(matchesGender);
+    
+    const selectedVoice = africanGenderMatch[0] || africanVoices[0] || genderMatch[0] || allLangVoices[0];
+
+    // MOBILE FIX: Speak the first sentence IMMEDIATELY in user gesture context
+    const firstSentence = sentences[0]?.trim();
+    if (!firstSentence) { setSpeaking(false); return; }
+    
+    const firstUtterance = new SpeechSynthesisUtterance(firstSentence);
+    firstUtterance.lang = fr ? "fr-FR" : "en-US"; // Use more widely supported locales
+    firstUtterance.rate = 0.92;
+    firstUtterance.pitch = 1.0;
+    firstUtterance.volume = 1.0;
+    if (selectedVoice) firstUtterance.voice = selectedVoice;
+    
+    let idx = 1; // Start from second sentence
+    
     const speakNext = () => {
       if (idx >= sentences.length) { setSpeaking(false); return; }
-      const sentence = sentences[idx].trim();
+      const sentence = sentences[idx]?.trim();
       idx++;
       if (!sentence) { speakNext(); return; }
 
       const u = new SpeechSynthesisUtterance(sentence);
-      u.lang = fr ? "fr-CM" : "en-NG"; // Cameroonian French / Nigerian English for African accent
+      u.lang = fr ? "fr-FR" : "en-US";
       u.rate = 0.92;
       u.pitch = 1.0;
       u.volume = 1.0;
-
-      const voices = speechSynthesis.getVoices();
-      const isFemale = voiceGender === "female";
-      
-      // African locale preferences (Cameroon, Nigeria, South Africa, Kenya, Ghana)
-      const africanLocales = ["cm", "ng", "za", "ke", "gh"];
-      const femaleHints = ["female", "woman", "fiona", "zira", "amaka", "chioma", "adaeze", "ngozi", "aisha"];
-      const maleHints = ["male", "man", "chidi", "emeka", "kwame", "kofi", "mandela", "david"];
-      
-      const matchesGender = (v: SpeechSynthesisVoice) => {
-        const n = v.name.toLowerCase();
-        return isFemale ? femaleHints.some(h => n.includes(h)) : maleHints.some(h => n.includes(h));
-      };
-
-      const isAfrican = (v: SpeechSynthesisVoice) => {
-        const locale = v.lang.toLowerCase();
-        return africanLocales.some(loc => locale.includes(loc));
-      };
-
-      // Priority: African voice matching gender > Any African voice > Language voice matching gender > Any language voice
-      const langCode = fr ? "fr" : "en";
-      const allLangVoices = voices.filter(v => v.lang.toLowerCase().startsWith(langCode));
-      const africanVoices = allLangVoices.filter(isAfrican);
-      const africanGenderMatch = africanVoices.filter(matchesGender);
-      const genderMatch = allLangVoices.filter(matchesGender);
-      
-      const v = africanGenderMatch[0] || africanVoices[0] || genderMatch[0] || allLangVoices[0];
-      if (v) u.voice = v;
+      if (selectedVoice) u.voice = selectedVoice;
 
       u.onend = () => setTimeout(speakNext, 150);
       u.onerror = () => { setSpeaking(false); };
       speechSynthesis.speak(u);
     };
-    speakNext();
+    
+    firstUtterance.onend = () => setTimeout(speakNext, 150);
+    firstUtterance.onerror = () => { setSpeaking(false); };
+    
+    // Speak immediately - this happens in user gesture context
+    speechSynthesis.speak(firstUtterance);
   }
 
   async function send(txt?: string) {
