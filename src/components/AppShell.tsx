@@ -9,6 +9,7 @@ import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
 import Profile from "@/pages/Profile";
 import SubscribeModal from "@/components/SubscribeModal";
+import FeedbackModal from "@/components/FeedbackModal";
 
 const NAV = [
   { icon: "🏠", label: "Dashboard", id: "dashboard" },
