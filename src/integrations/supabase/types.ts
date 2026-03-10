@@ -169,7 +169,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      link_parent_child: {
+        Args: { child_user_id: string; parent_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
