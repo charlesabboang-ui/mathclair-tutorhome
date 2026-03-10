@@ -35,6 +35,14 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
 
+  // Ensure voices are loaded (critical for mobile)
+  useEffect(() => {
+    const loadVoices = () => speechSynthesis?.getVoices();
+    loadVoices();
+    speechSynthesis?.addEventListener?.("voiceschanged", loadVoices);
+    return () => speechSynthesis?.removeEventListener?.("voiceschanged", loadVoices);
+  }, []);
+
   function speak(text: string) {
     if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
@@ -43,7 +51,6 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     // Clean LaTeX and markdown for natural speech
     const clean = text
       .replace(/\$\$[\s\S]*?\$\$/g, (m) => {
-        // Extract readable math from display blocks
         return m.replace(/\$\$/g, "").replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, fr ? "$1 sur $2" : "$1 over $2")
           .replace(/\\sqrt\{([^}]*)\}/g, fr ? "racine carrée de $1" : "square root of $1")
           .replace(/\\(times|cdot)/g, fr ? " fois " : " times ")
@@ -62,18 +69,26 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           .replace(/\\(pm)/g, fr ? " plus ou moins " : " plus or minus ")
           .replace(/\\[a-zA-Z]+/g, " ").replace(/[{}^_]/g, " ").trim();
       })
-      .replace(/\*\*([^*]+)\*\*/g, "$1")   // bold
-      .replace(/\*([^*]+)\*/g, "$1")         // italic
-      .replace(/#{1,3}\s*/g, "")             // headings
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/#{1,3}\s*/g, "")
       .replace(/→/g, fr ? " donne " : " gives ")
-      .replace(/\n{2,}/g, "... ")            // paragraph breaks → pauses
-      .replace(/\n/g, ". ")                  // line breaks → sentence pauses
+      .replace(/\n{2,}/g, "... ")
+      .replace(/\n/g, ". ")
       .replace(/\s{2,}/g, " ")
       .trim()
       .substring(0, 800);
 
-    // Split into sentences for smoother delivery
-    const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+    // On mobile, use fewer/larger chunks to avoid speech queue issues
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const sentences = isMobile
+      ? clean.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g)?.reduce((acc: string[], s, i) => {
+          // Group sentences in pairs for mobile (fewer utterances = more reliable)
+          if (i % 2 === 0) acc.push(s.trim());
+          else acc[acc.length - 1] += " " + s.trim();
+          return acc;
+        }, []) || [clean]
+      : clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
 
     let idx = 0;
     const speakNext = () => {
@@ -102,13 +117,18 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       if (v) u.voice = v;
 
       u.onend = () => {
-        // Small pause between sentences for natural cadence
-        setTimeout(speakNext, 150);
+        setTimeout(speakNext, isMobile ? 200 : 150);
       };
       u.onerror = () => { setSpeaking(false); };
       speechSynthesis.speak(u);
     };
-    speakNext();
+
+    // Mobile Chrome bug: need user gesture context, use timeout
+    if (isMobile) {
+      setTimeout(speakNext, 50);
+    } else {
+      speakNext();
+    }
   }
 
   async function send(txt?: string) {
@@ -168,20 +188,34 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const r = new SR();
     r.lang = fr ? "fr-CM" : "en-GB";
-    r.interimResults = true;
+    r.interimResults = false; // Mobile works better with final results only
+    r.continuous = false; // Single utterance mode for mobile reliability
+    r.maxAlternatives = 1;
+
+    let finalTranscript = "";
+
     r.onresult = (e: any) => {
-      let final = "", interim = "";
-      for (let x = e.resultIndex; x < e.results.length; x++) {
-        if (e.results[x].isFinal) final += e.results[x][0].transcript;
-        else interim += e.results[x][0].transcript;
+      finalTranscript = "";
+      for (let x = 0; x < e.results.length; x++) {
+        if (e.results[x].isFinal) {
+          finalTranscript += e.results[x][0].transcript;
+        }
       }
-      setInput(final || interim);
+      if (finalTranscript) setInput(finalTranscript);
     };
     r.onend = () => {
       setRec(false);
-      setInput((v) => { if (v.trim()) setTimeout(() => send(v), 50); return v; });
+      if (finalTranscript.trim()) {
+        setTimeout(() => send(finalTranscript), 100);
+      }
     };
-    r.onerror = () => setRec(false);
+    r.onerror = (e: any) => {
+      console.warn("Speech recognition error:", e.error);
+      setRec(false);
+      if (e.error === "not-allowed") {
+        alert(fr ? "Veuillez autoriser l'accès au microphone." : "Please allow microphone access.");
+      }
+    };
     r.start();
     recRef.current = r;
     setRec(true);
