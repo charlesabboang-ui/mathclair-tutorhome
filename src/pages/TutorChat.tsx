@@ -168,20 +168,34 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const r = new SR();
     r.lang = fr ? "fr-CM" : "en-GB";
-    r.interimResults = true;
+    r.interimResults = false; // Mobile works better with final results only
+    r.continuous = false; // Single utterance mode for mobile reliability
+    r.maxAlternatives = 1;
+
+    let finalTranscript = "";
+
     r.onresult = (e: any) => {
-      let final = "", interim = "";
-      for (let x = e.resultIndex; x < e.results.length; x++) {
-        if (e.results[x].isFinal) final += e.results[x][0].transcript;
-        else interim += e.results[x][0].transcript;
+      finalTranscript = "";
+      for (let x = 0; x < e.results.length; x++) {
+        if (e.results[x].isFinal) {
+          finalTranscript += e.results[x][0].transcript;
+        }
       }
-      setInput(final || interim);
+      if (finalTranscript) setInput(finalTranscript);
     };
     r.onend = () => {
       setRec(false);
-      setInput((v) => { if (v.trim()) setTimeout(() => send(v), 50); return v; });
+      if (finalTranscript.trim()) {
+        setTimeout(() => send(finalTranscript), 100);
+      }
     };
-    r.onerror = () => setRec(false);
+    r.onerror = (e: any) => {
+      console.warn("Speech recognition error:", e.error);
+      setRec(false);
+      if (e.error === "not-allowed") {
+        alert(fr ? "Veuillez autoriser l'accès au microphone." : "Please allow microphone access.");
+      }
+    };
     r.start();
     recRef.current = r;
     setRec(true);
