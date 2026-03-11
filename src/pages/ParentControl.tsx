@@ -109,6 +109,9 @@ export default function ParentControl({ fr }: Props) {
           )}
         </div>
 
+        {/* Invite Code */}
+        {!profile?.child_id && <InviteCodeGenerator fr={fr} />}
+
         {/* WhatsApp */}
         <div className="bg-card border border-border rounded-xl p-4">
           <p className="font-display text-sm mb-3">📱 WhatsApp</p>

@@ -85,6 +85,13 @@ export default function Dashboard({ fr, goTo }: Props) {
         </div>
       </div>
 
+      {/* Link to parent */}
+      {!profile?.is_parent && (
+        <div className="mb-3">
+          <RedeemInviteCode fr={fr} />
+        </div>
+      )}
+
       {/* Quick actions */}
       <div className="bg-card border border-border rounded-xl p-4">
         <p className="font-display text-sm mb-3">🚀 {fr ? "Continuer" : "Continue Learning"}</p>
