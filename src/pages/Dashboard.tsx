@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
+import RedeemInviteCode from "@/components/RedeemInviteCode";
 
 interface Props {
   lang: string;
