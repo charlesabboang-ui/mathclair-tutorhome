@@ -38,7 +38,8 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
 
     try {
       if (isSignUp) {
-        const result = await signUp(email, password, name, mode === "parent", {
+        const formattedPhone = phone.startsWith("+") ? phone : `+237${phone}`;
+        const result = await signUp(formattedPhone, password, name, mode === "parent", {
           level: isStudent ? level : "",
           school: isStudent ? school : "",
           childName: !isStudent ? childName : "",
@@ -50,7 +51,8 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
           setSuccess(fr ? "Compte créé ! Connexion en cours…" : "Account created! Signing in…");
         }
       } else {
-        const result = await signIn(email, password);
+        const formattedPhone = phone.startsWith("+") ? phone : `+237${phone}`;
+        const result = await signIn(formattedPhone, password);
         setLoading(false);
         if (result.error) {
           setErr(result.error);
