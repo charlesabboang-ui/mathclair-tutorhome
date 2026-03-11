@@ -126,12 +126,12 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
             )}
 
             <label className="block text-[0.74rem] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">
-              {fr ? "Adresse email" : "Email address"}
+              {fr ? "Numéro de téléphone" : "Phone number"}
             </label>
             <div className="relative mb-3">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">📧</span>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder={fr ? "votre@email.cm" : "your@email.cm"}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">📱</span>
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                placeholder={fr ? "6XXXXXXXX" : "6XXXXXXXX"}
                 className="w-full bg-muted border border-border rounded-xl py-2.5 pl-10 pr-3 text-foreground text-sm outline-none focus:border-secondary/50 transition-colors" />
             </div>
 
