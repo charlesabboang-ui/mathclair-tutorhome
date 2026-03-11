@@ -11,6 +11,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("Form 5");
   const [school, setSchool] = useState("");
