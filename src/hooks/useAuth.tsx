@@ -75,11 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (phone: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => {
+    const email = phoneToEmail(phone);
     const { error } = await supabase.auth.signUp({
-      phone,
+      email,
       password,
       options: {
-        data: { name },
+        data: { name, phone },
       },
     });
     if (error) return { error: error.message };
@@ -100,7 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (phone: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ phone, password });
+    const email = phoneToEmail(phone);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     return { error: null };
   };
