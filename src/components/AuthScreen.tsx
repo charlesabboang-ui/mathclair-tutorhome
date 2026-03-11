@@ -10,8 +10,7 @@ interface Props {
 export default function AuthScreen({ mode, onBack, lang }: Props) {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("Form 5");
   const [school, setSchool] = useState("");
