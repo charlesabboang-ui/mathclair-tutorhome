@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          parent_user_id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          parent_user_id: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          parent_user_id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           child_id: string | null
@@ -173,6 +203,7 @@ export type Database = {
         Args: { child_user_id: string; parent_user_id: string }
         Returns: undefined
       }
+      redeem_invite_code: { Args: { invite_code: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

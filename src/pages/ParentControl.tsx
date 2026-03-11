@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import InviteCodeGenerator from "@/components/InviteCodeGenerator";
 
 interface Props {
   lang: string;
@@ -107,6 +108,9 @@ export default function ParentControl({ fr }: Props) {
             <p className="text-xs text-muted-foreground">{fr ? "Aucune session récente." : "No recent sessions."}</p>
           )}
         </div>
+
+        {/* Invite Code */}
+        {!profile?.child_id && <InviteCodeGenerator fr={fr} />}
 
         {/* WhatsApp */}
         <div className="bg-card border border-border rounded-xl p-4">

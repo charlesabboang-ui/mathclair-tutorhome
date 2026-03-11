@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
+import RedeemInviteCode from "@/components/RedeemInviteCode";
 
 interface Props {
   lang: string;
@@ -83,6 +84,13 @@ export default function Dashboard({ fr, goTo }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Link to parent */}
+      {!profile?.is_parent && (
+        <div className="mb-3">
+          <RedeemInviteCode fr={fr} />
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="bg-card border border-border rounded-xl p-4">
