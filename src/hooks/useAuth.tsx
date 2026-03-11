@@ -19,8 +19,8 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (phone: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => Promise<{ error: string | null }>;
+  signIn: (phone: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
 }
@@ -69,13 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => {
+  const signUp = async (phone: string, password: string, name: string, isParent: boolean, extra?: Record<string, string>) => {
     const { error } = await supabase.auth.signUp({
-      email,
+      phone,
       password,
       options: {
         data: { name },
-        emailRedirectTo: window.location.origin,
       },
     });
     if (error) return { error: error.message };
@@ -95,8 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signIn = async (phone: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ phone, password });
     if (error) return { error: error.message };
     return { error: null };
   };

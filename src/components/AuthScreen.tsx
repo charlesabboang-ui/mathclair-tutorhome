@@ -10,7 +10,7 @@ interface Props {
 export default function AuthScreen({ mode, onBack, lang }: Props) {
   const { signIn, signUp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("Form 5");
@@ -25,7 +25,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
   const isStudent = mode === "student";
 
   async function submit() {
-    if (!email.trim() || !password.trim()) {
+    if (!phone.trim() || !password.trim()) {
       setErr(fr ? "Veuillez remplir tous les champs." : "Please fill in all fields.");
       return;
     }
@@ -39,7 +39,8 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
 
     try {
       if (isSignUp) {
-        const result = await signUp(email, password, name, mode === "parent", {
+        const formattedPhone = phone.startsWith("+") ? phone : `+237${phone}`;
+        const result = await signUp(formattedPhone, password, name, mode === "parent", {
           level: isStudent ? level : "",
           school: isStudent ? school : "",
           childName: !isStudent ? childName : "",
@@ -51,7 +52,8 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
           setSuccess(fr ? "Compte créé ! Connexion en cours…" : "Account created! Signing in…");
         }
       } else {
-        const result = await signIn(email, password);
+        const formattedPhone = phone.startsWith("+") ? phone : `+237${phone}`;
+        const result = await signIn(formattedPhone, password);
         setLoading(false);
         if (result.error) {
           setErr(result.error);
@@ -125,12 +127,12 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
             )}
 
             <label className="block text-[0.74rem] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">
-              {fr ? "Adresse email" : "Email address"}
+              {fr ? "Numéro de téléphone" : "Phone number"}
             </label>
             <div className="relative mb-3">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">📧</span>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder={fr ? "votre@email.cm" : "your@email.cm"}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">📱</span>
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                placeholder={fr ? "6XXXXXXXX" : "6XXXXXXXX"}
                 className="w-full bg-muted border border-border rounded-xl py-2.5 pl-10 pr-3 text-foreground text-sm outline-none focus:border-secondary/50 transition-colors" />
             </div>
 
