@@ -14,6 +14,11 @@ interface Profile {
   lang: string;
 }
 
+function phoneToEmail(phone: string): string {
+  const digits = phone.replace(/[^0-9]/g, "");
+  return `${digits}@phone.mathclair.app`;
+}
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
