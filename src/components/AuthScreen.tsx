@@ -24,7 +24,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
   const isStudent = mode === "student";
 
   async function submit() {
-    if (!email.trim() || !password.trim()) {
+    if (!phone.trim() || !password.trim()) {
       setErr(fr ? "Veuillez remplir tous les champs." : "Please fill in all fields.");
       return;
     }
