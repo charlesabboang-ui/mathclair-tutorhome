@@ -83,7 +83,7 @@ export default function ClaudeChat() {
             return (
               <div key={m.id} className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
                 {!isUser && (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-primary flex-shrink-0 flex items-center justify-center text-primary-foreground text-xs font-bold">
                     C
                   </div>
                 )}
