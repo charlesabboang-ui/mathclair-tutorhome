@@ -2,3 +2,6 @@ project_id = "lsiknhkchryvkfisezik"
 
 [functions.math-tutor]
 verify_jwt = false
+
+[functions.claude-chat]
+verify_jwt = false
