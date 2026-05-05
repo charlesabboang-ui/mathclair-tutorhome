@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { streamChat } from "@/lib/streamChat";
+import { streamClaude } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
 
 interface Props {
@@ -79,11 +79,9 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
       .trim()
       .substring(0, 800);
 
-    // On mobile, use fewer/larger chunks to avoid speech queue issues
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const sentences = isMobile
       ? clean.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g)?.reduce((acc: string[], s, i) => {
-          // Group sentences in pairs for mobile (fewer utterances = more reliable)
           if (i % 2 === 0) acc.push(s.trim());
           else acc[acc.length - 1] += " " + s.trim();
           return acc;
@@ -116,19 +114,12 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           voices.find((v) => v.lang.startsWith("en"));
       if (v) u.voice = v;
 
-      u.onend = () => {
-        setTimeout(speakNext, isMobile ? 200 : 150);
-      };
+      u.onend = () => { setTimeout(speakNext, isMobile ? 200 : 150); };
       u.onerror = () => { setSpeaking(false); };
       speechSynthesis.speak(u);
     };
 
-    // Mobile Chrome bug: need user gesture context, use timeout
-    if (isMobile) {
-      setTimeout(speakNext, 50);
-    } else {
-      speakNext();
-    }
+    if (isMobile) setTimeout(speakNext, 50); else speakNext();
   }
 
   async function send(txt?: string) {
@@ -142,18 +133,33 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     setMsgs((m) => [...m, userMsg, { id: id + 1, role: "assistant", text: "", loading: true }]);
     setBusy(true);
 
-    // Build messages for API
     const apiMessages = msgs
       .filter((m) => !m.loading)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.text }));
     apiMessages.push({ role: "user", content: text });
 
+    const level = profile?.level || "Form 5";
+    const system = `You are Clair, an expert mathematics tutor for Cameroonian students. You specialize in the MINESEC (Francophone) and GCE (Anglophone) curricula.
+
+STUDENT LEVEL: ${level}
+LANGUAGE: ${fr ? "French" : "English"} — ALWAYS respond in this language.
+
+RULES:
+- Give clear, step-by-step explanations
+- Use LaTeX notation for math: inline $...$ and display $$...$$
+- Examples: $x^2 + 3x - 4 = 0$, $\\frac{-b \\pm \\sqrt{\\Delta}}{2a}$, $\\int_0^1 x^2 dx$
+- Use \\sqrt{}, \\frac{}{}, \\sum, \\int, \\lim, \\sin, \\cos, \\tan etc.
+- Reference Cameroon exams (BEPC, Probatoire, Baccalauréat, GCE O/A Level)
+- Be encouraging and patient
+- For exercises, show the solution step by step
+- Keep responses concise but complete
+- Use currency FCFA for any word problems involving money`;
+
     let assistantText = "";
 
-    await streamChat({
+    await streamClaude({
       messages: apiMessages,
-      level: profile?.level || "Form 5",
-      lang,
+      system,
       onDelta: (chunk) => {
         assistantText += chunk;
         setMsgs((prev) => {
@@ -188,8 +194,8 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const r = new SR();
     r.lang = fr ? "fr-CM" : "en-GB";
-    r.interimResults = false; // Mobile works better with final results only
-    r.continuous = false; // Single utterance mode for mobile reliability
+    r.interimResults = false;
+    r.continuous = false;
     r.maxAlternatives = 1;
 
     let finalTranscript = "";
@@ -197,17 +203,13 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     r.onresult = (e: any) => {
       finalTranscript = "";
       for (let x = 0; x < e.results.length; x++) {
-        if (e.results[x].isFinal) {
-          finalTranscript += e.results[x][0].transcript;
-        }
+        if (e.results[x].isFinal) finalTranscript += e.results[x][0].transcript;
       }
       if (finalTranscript) setInput(finalTranscript);
     };
     r.onend = () => {
       setRec(false);
-      if (finalTranscript.trim()) {
-        setTimeout(() => send(finalTranscript), 100);
-      }
+      if (finalTranscript.trim()) setTimeout(() => send(finalTranscript), 100);
     };
     r.onerror = (e: any) => {
       console.warn("Speech recognition error:", e.error);
@@ -227,12 +229,15 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
 
   const status = busy ? (fr ? "⏳ Réfléchit…" : "⏳ Thinking…")
     : speaking ? (fr ? "🔊 Parle…" : "🔊 Speaking…")
-    : (fr ? "En ligne • IA + Voix" : "Online • AI + Voice");
+    : (fr ? "En ligne • Claude + Voix" : "Online • Claude + Voice");
+
+  // Show quick starters only when conversation hasn't started yet (just the greeting)
+  const showQuickInline = msgs.length <= 1;
 
   return (
     <div className="absolute inset-0 flex gap-0 md:gap-3 overflow-hidden p-0 md:p-3">
       {/* Chat panel */}
-      <div className="flex-1 min-w-0 bg-card md:border md:border-border md:rounded-xl flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 bg-card md:border md:border-border md:rounded-xl flex flex-col overflow-hidden min-h-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0 border-b border-border">
           <div className="w-9 h-9 rounded-full flex-shrink-0 relative bg-gradient-to-br from-secondary to-emerald flex items-center justify-center text-base">
@@ -240,23 +245,23 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
             <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card ${busy ? "bg-primary" : "bg-emerald"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">{fr ? "Clair — Tuteur Maths à Domicile" : "Clair — Math Tutor at Home"}</p>
-            <p className="text-[0.69rem] text-muted-foreground">{status}</p>
+            <p className="text-sm font-bold truncate">{fr ? "Clair — Tuteur Maths à Domicile" : "Clair — Math Tutor at Home"}</p>
+            <p className="text-[0.69rem] text-muted-foreground truncate">{status}</p>
           </div>
           {speaking && (
             <button onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}
-              className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer">
+              className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer flex-shrink-0">
               ⏹ Stop
             </button>
           )}
         </div>
 
         {/* Messages */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-3 md:p-3.5 flex flex-col gap-3">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 md:p-3.5 flex flex-col gap-3">
           {msgs.map((m) => {
             const isUser = m.role === "user";
             return (
-              <div key={m.id} className={`msg-enter flex gap-2 ${isUser ? "self-end flex-row-reverse" : "self-start"}`} style={{ maxWidth: "90%" }}>
+              <div key={m.id} className={`msg-enter flex gap-2 ${isUser ? "self-end flex-row-reverse" : "self-start"}`} style={{ maxWidth: "92%" }}>
                 <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
                   isUser ? "bg-gradient-to-br from-primary to-destructive" : "bg-gradient-to-br from-secondary to-emerald"
                 }`}>
@@ -272,7 +277,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
                           <span key={d} className={`w-2 h-2 rounded-full bg-muted-foreground inline-block dot-${d}`} />
                         ))}
                       </div>
-                    ) : isUser ? <p>{m.text}</p> : <MathRenderer text={m.text} />}
+                    ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <MathRenderer text={m.text} />}
                   </div>
                   {!isUser && !m.loading && m.text && (
                     <button onClick={() => speak(m.text)}
@@ -287,16 +292,30 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
           <div ref={bottomRef} />
         </div>
 
+        {/* Mobile quick starters (horizontal scroll, only before first user message) */}
+        {showQuickInline && (
+          <div className="lg:hidden flex-shrink-0 px-3 pb-2 overflow-x-auto">
+            <div className="flex gap-2 w-max">
+              {QUICK.map((q) => (
+                <button key={q} onClick={() => send(q)}
+                  className="bg-muted border border-border rounded-full px-3 py-1.5 text-[0.70rem] text-muted-foreground whitespace-nowrap cursor-pointer hover:bg-secondary/10 hover:text-foreground transition-all">
+                  <MathRenderer text={q} className="text-[0.70rem] inline" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Voice indicator */}
         {rec && (
-          <div className="flex items-center gap-2 px-3 py-1.5 mx-3 bg-destructive/10 border border-destructive/30 rounded-full text-xs text-destructive flex-shrink-0">
+          <div className="flex items-center gap-2 px-3 py-1.5 mx-3 mb-1 bg-destructive/10 border border-destructive/30 rounded-full text-xs text-destructive flex-shrink-0">
             <span className="w-2 h-2 rounded-full bg-destructive inline-block voice-blink" />
             {fr ? "J'écoute… parlez" : "Listening… speak now"}
           </div>
         )}
 
         {/* Input */}
-        <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border">
+        <div className="flex items-end gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border bg-card" style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}>
           <button onClick={toggleMic}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
@@ -306,7 +325,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder={fr ? "Posez votre question maths…" : "Ask any math question…"}
             rows={1}
-            className="flex-1 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[38px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
+            className="flex-1 min-w-0 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[40px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
           <button onClick={() => send()} disabled={busy}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base border-none cursor-pointer transition-all ${
               busy ? "bg-muted-foreground/50 text-foreground cursor-not-allowed opacity-50" : "bg-secondary text-secondary-foreground hover:brightness-110"
@@ -314,7 +333,7 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
         </div>
       </div>
 
-      {/* Side panel - hidden on mobile */}
+      {/* Side panel - desktop only */}
       <div className="hidden lg:flex w-[280px] flex-shrink-0 flex-col gap-3 overflow-y-auto min-h-0">
         <div className="bg-card border border-border rounded-xl p-3.5 flex-shrink-0">
           <p className="font-display text-sm mb-2.5">💡 {fr ? "Questions rapides" : "Quick Starters"}</p>
