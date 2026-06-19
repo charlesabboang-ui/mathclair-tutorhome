@@ -39,33 +39,61 @@ serve(async (req) => {
       content: m.content,
     }));
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 2048,
-        stream: true,
-        system: system || "You are Claude, a helpful AI assistant. Be concise and clear.",
-        messages: anthropicMessages,
-      }),
-    });
+    // Retry with exponential backoff on 5xx / network errors
+    const maxAttempts = 3;
+    let response: Response | null = null;
+    let lastErr: string = "";
 
-    if (!response.ok) {
-      const t = await response.text();
-      console.error("Anthropic error:", response.status, t);
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please wait and try again." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-5-20250929",
+            max_tokens: 2048,
+            stream: true,
+            system: system || "You are Claude, a helpful AI assistant. Be concise and clear.",
+            messages: anthropicMessages,
+          }),
         });
+
+        if (response.ok) break;
+
+        // Don't retry on client errors (4xx) except 429
+        if (response.status < 500 && response.status !== 429) {
+          const t = await response.text();
+          console.error("Anthropic client error:", response.status, t);
+          return new Response(JSON.stringify({ error: "Claude API error" }), {
+            status: response.status === 429 ? 429 : 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        lastErr = `${response.status} ${await response.text()}`;
+        console.warn(`Anthropic attempt ${attempt} failed: ${lastErr}`);
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
+        console.warn(`Anthropic attempt ${attempt} threw: ${lastErr}`);
+        response = null;
       }
-      return new Response(JSON.stringify({ error: "Claude API error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+      if (attempt < maxAttempts) {
+        const delay = 500 * Math.pow(2, attempt - 1) + Math.random() * 250;
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+
+    if (!response || !response.ok) {
+      console.error("Anthropic failed after retries:", lastErr);
+      const status = response?.status === 429 ? 429 : 502;
+      return new Response(JSON.stringify({
+        error: status === 429 ? "Rate limited. Please wait and try again." : "Claude API unavailable after retries.",
+      }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Transform Anthropic SSE stream to OpenAI-compatible SSE for the client
