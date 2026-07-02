@@ -14,6 +14,8 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   loading?: boolean;
+  error?: boolean;
+  retryText?: string;
 }
 
 export default function TutorChat({ lang, fr, tutorMsg }: Props) {
