@@ -174,10 +174,28 @@ RULES:
         if (assistantText) speak(assistantText);
       },
       onError: (err) => {
+        const isRate = /rate|429|limit/i.test(err);
+        const isAuth = /unauth|401|sign/i.test(err);
+        const isNet = /network|fetch|502|503|unavailable|timeout/i.test(err);
+        const fallback = fr
+          ? (isAuth
+              ? "⚠️ Session expirée. Veuillez vous reconnecter pour continuer."
+              : isRate
+              ? "⏱️ Trop de requêtes en ce moment. Patientez quelques secondes puis réessayez."
+              : isNet
+              ? "📶 Le tuteur est momentanément indisponible (problème réseau). Vérifiez votre connexion et réessayez — appuyez sur 🔄 Réessayer ci-dessous."
+              : `⚠️ Une erreur est survenue : ${err}. Appuyez sur 🔄 Réessayer ci-dessous.`)
+          : (isAuth
+              ? "⚠️ Your session has expired. Please sign in again to continue."
+              : isRate
+              ? "⏱️ Too many requests right now. Please wait a few seconds and try again."
+              : isNet
+              ? "📶 The tutor is temporarily unavailable (network issue). Check your connection and tap 🔄 Retry below."
+              : `⚠️ Something went wrong: ${err}. Tap 🔄 Retry below.`);
         setMsgs((prev) => {
           const updated = [...prev];
           const lastIdx = updated.length - 1;
-          updated[lastIdx] = { ...updated[lastIdx], text: `⚠️ ${err}`, loading: false };
+          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: text } as Message;
           return updated;
         });
         setBusy(false);
