@@ -14,6 +14,8 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   loading?: boolean;
+  error?: boolean;
+  retryText?: string;
 }
 
 export default function TutorChat({ lang, fr, tutorMsg }: Props) {
@@ -174,10 +176,28 @@ RULES:
         if (assistantText) speak(assistantText);
       },
       onError: (err) => {
+        const isRate = /rate|429|limit/i.test(err);
+        const isAuth = /unauth|401|sign/i.test(err);
+        const isNet = /network|fetch|502|503|unavailable|timeout/i.test(err);
+        const fallback = fr
+          ? (isAuth
+              ? "⚠️ Session expirée. Veuillez vous reconnecter pour continuer."
+              : isRate
+              ? "⏱️ Trop de requêtes en ce moment. Patientez quelques secondes puis réessayez."
+              : isNet
+              ? "📶 Le tuteur est momentanément indisponible (problème réseau). Vérifiez votre connexion et réessayez — appuyez sur 🔄 Réessayer ci-dessous."
+              : `⚠️ Une erreur est survenue : ${err}. Appuyez sur 🔄 Réessayer ci-dessous.`)
+          : (isAuth
+              ? "⚠️ Your session has expired. Please sign in again to continue."
+              : isRate
+              ? "⏱️ Too many requests right now. Please wait a few seconds and try again."
+              : isNet
+              ? "📶 The tutor is temporarily unavailable (network issue). Check your connection and tap 🔄 Retry below."
+              : `⚠️ Something went wrong: ${err}. Tap 🔄 Retry below.`);
         setMsgs((prev) => {
           const updated = [...prev];
           const lastIdx = updated.length - 1;
-          updated[lastIdx] = { ...updated[lastIdx], text: `⚠️ ${err}`, loading: false };
+          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: text } as Message;
           return updated;
         });
         setBusy(false);
@@ -279,10 +299,18 @@ RULES:
                       </div>
                     ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <MathRenderer text={m.text} />}
                   </div>
-                  {!isUser && !m.loading && m.text && (
+                  {!isUser && !m.loading && m.text && !m.error && (
                     <button onClick={() => speak(m.text)}
                       className="self-start bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
                       🔊 {fr ? "Écouter" : "Listen"}
+                    </button>
+                  )}
+                  {!isUser && m.error && m.retryText && (
+                    <button
+                      onClick={() => { setMsgs((prev) => prev.slice(0, -2)); send(m.retryText!); }}
+                      disabled={busy}
+                      className="self-start bg-secondary/10 border border-secondary/40 text-secondary rounded-full px-3 py-1 text-[0.72rem] font-semibold cursor-pointer hover:bg-secondary/20 transition-colors disabled:opacity-50">
+                      🔄 {fr ? "Réessayer" : "Retry"}
                     </button>
                   )}
                 </div>

@@ -50,9 +50,19 @@ export default function ClaudeChat() {
       },
       onDone: () => setBusy(false),
       onError: (err) => {
+        const isRate = /rate|429|limit/i.test(err);
+        const isAuth = /unauth|401|sign/i.test(err);
+        const isNet = /network|fetch|502|503|unavailable|timeout/i.test(err);
+        const fallback = isAuth
+          ? "⚠️ Your session has expired. Please sign in again."
+          : isRate
+          ? "⏱️ Too many requests. Please wait a few seconds and try again."
+          : isNet
+          ? "📶 Claude is temporarily unavailable. Check your connection and tap Retry below."
+          : `⚠️ Something went wrong: ${err}. Tap Retry below.`;
         setMsgs((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: `⚠️ ${err}`, loading: false };
+          updated[updated.length - 1] = { ...updated[updated.length - 1], text: fallback, loading: false };
           return updated;
         });
         setBusy(false);
