@@ -299,10 +299,18 @@ RULES:
                       </div>
                     ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <MathRenderer text={m.text} />}
                   </div>
-                  {!isUser && !m.loading && m.text && (
+                  {!isUser && !m.loading && m.text && !m.error && (
                     <button onClick={() => speak(m.text)}
                       className="self-start bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
                       🔊 {fr ? "Écouter" : "Listen"}
+                    </button>
+                  )}
+                  {!isUser && m.error && m.retryText && (
+                    <button
+                      onClick={() => { setMsgs((prev) => prev.slice(0, -2)); send(m.retryText!); }}
+                      disabled={busy}
+                      className="self-start bg-secondary/10 border border-secondary/40 text-secondary rounded-full px-3 py-1 text-[0.72rem] font-semibold cursor-pointer hover:bg-secondary/20 transition-colors disabled:opacity-50">
+                      🔄 {fr ? "Réessayer" : "Retry"}
                     </button>
                   )}
                 </div>
