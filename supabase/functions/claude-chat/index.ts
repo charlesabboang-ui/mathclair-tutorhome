@@ -56,7 +56,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "claude-sonnet-4-5-20250929",
-            max_tokens: 2048,
+            max_tokens: 4096,
             stream: true,
             system: system || "You are Claude, a helpful AI assistant. Be concise and clear.",
             messages: anthropicMessages,
