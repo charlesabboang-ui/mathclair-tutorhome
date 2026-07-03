@@ -34,7 +34,8 @@ serve(async (req) => {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     // Convert OpenAI-style messages to Anthropic format
-    const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
+    // Pass content through as-is when it's an array (multimodal blocks: text + image)
+    const anthropicMessages = messages.map((m: { role: string; content: any }) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
     }));
