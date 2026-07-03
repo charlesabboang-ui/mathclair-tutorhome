@@ -1,6 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 
-type Msg = { role: "user" | "assistant"; content: string };
+export type ClaudeBlock =
+  | { type: "text"; text: string }
+  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+type Msg = { role: "user" | "assistant"; content: string | ClaudeBlock[] };
 
 const CLAUDE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/claude-chat`;
 
