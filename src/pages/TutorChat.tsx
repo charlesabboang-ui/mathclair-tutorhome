@@ -379,8 +379,52 @@ RULES:
           </div>
         )}
 
+        {/* Pending photo preview */}
+        {pendingImage && (
+          <div className="flex items-center gap-2 px-3 pb-1 flex-shrink-0">
+            <div className="relative">
+              <img src={pendingImage.dataUrl} alt="preview" className="w-14 h-14 object-cover rounded-lg border border-border" />
+              <button
+                onClick={() => { setPendingImage(null); if (fileRef.current) fileRef.current.value = ""; }}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center border border-card"
+                aria-label="Remove photo">✕</button>
+            </div>
+            <span className="text-[0.7rem] text-muted-foreground">{fr ? "Photo prête — tapez une question (optionnel) puis envoyez" : "Photo attached — add a question (optional) and send"}</span>
+          </div>
+        )}
+
         {/* Input */}
         <div className="flex items-end gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border bg-card" style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              if (f.size > 5 * 1024 * 1024) {
+                alert(fr ? "Photo trop grande (max 5 Mo)." : "Photo too large (max 5 MB).");
+                e.target.value = "";
+                return;
+              }
+              const dataUrl = await new Promise<string>((res, rej) => {
+                const r = new FileReader();
+                r.onload = () => res(r.result as string);
+                r.onerror = () => rej(new Error("read fail"));
+                r.readAsDataURL(f);
+              });
+              const [meta, base64] = dataUrl.split(",");
+              const mediaType = meta.match(/data:([^;]+)/)?.[1] || f.type || "image/jpeg";
+              setPendingImage({ dataUrl, base64, mediaType });
+            }}
+          />
+          <button onClick={() => fileRef.current?.click()} disabled={busy}
+            title={fr ? "Envoyer une photo de l'exercice" : "Send a photo of the exercise"}
+            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
+            📷
+          </button>
           <button onClick={toggleMic}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
@@ -388,10 +432,10 @@ RULES:
           <textarea ref={taRef} value={input}
             onChange={(e) => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 110) + "px"; }}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={fr ? "Posez votre question maths…" : "Ask any math question…"}
+            placeholder={fr ? "Posez votre question ou joignez une photo…" : "Ask a question or attach a photo…"}
             rows={1}
             className="flex-1 min-w-0 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[40px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
-          <button onClick={() => send()} disabled={busy}
+          <button onClick={() => send()} disabled={busy || (!input.trim() && !pendingImage)}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base border-none cursor-pointer transition-all ${
               busy ? "bg-muted-foreground/50 text-foreground cursor-not-allowed opacity-50" : "bg-secondary text-secondary-foreground hover:brightness-110"
             }`}>➤</button>
