@@ -325,6 +325,9 @@ RULES:
                   <div className={`px-3 py-2.5 text-sm leading-relaxed min-w-0 break-words ${
                     isUser ? "rounded-[13px_4px_13px_13px] bg-secondary" : "rounded-[4px_13px_13px_13px] bg-muted"
                   }`}>
+                    {m.image && (
+                      <img src={m.image} alt="uploaded exercise" className="max-w-[240px] max-h-[240px] rounded-lg mb-2 border border-border" />
+                    )}
                     {m.loading ? (
                       <div className="flex gap-1">
                         {[1, 2, 3].map((d) => (
