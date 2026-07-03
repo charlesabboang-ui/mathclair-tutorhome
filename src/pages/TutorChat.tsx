@@ -32,9 +32,11 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   const [busy, setBusy] = useState(false);
   const [rec, setRec] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string; mediaType: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
