@@ -231,7 +231,7 @@ RULES:
         setMsgs((prev) => {
           const updated = [...prev];
           const lastIdx = updated.length - 1;
-          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: text } as Message;
+          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: promptText } as Message;
           return updated;
         });
         setBusy(false);
