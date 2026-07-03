@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { streamClaude } from "@/lib/streamClaude";
+import { streamClaude, type ClaudeBlock } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   lang: "en" | "fr";
