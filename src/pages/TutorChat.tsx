@@ -128,21 +128,51 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     if (isMobile) setTimeout(speakNext, 50); else speakNext();
   }
 
+  async function fetchWebContext(query: string): Promise<string> {
+    try {
+      const { data } = await supabase.functions.invoke("math-web-context", { body: { query } });
+      const snippets: string[] = data?.snippets || [];
+      if (!snippets.length) return "";
+      return `\n\nRELATED PUBLIC REFERENCES (from Mathos.ai and Qwen.ai — use for inspiration, cite briefly if helpful):\n${snippets.slice(0, 5).map((s) => `- ${s}`).join("\n")}`;
+    } catch { return ""; }
+  }
+
   async function send(txt?: string) {
     const text = (txt || input).trim();
-    if (!text || busy) return;
+    const img = pendingImage;
+    if ((!text && !img) || busy) return;
     setInput("");
+    setPendingImage(null);
+    if (fileRef.current) fileRef.current.value = "";
     if (taRef.current) taRef.current.style.height = "auto";
 
+    const promptText = text || (fr ? "Explique cet exercice étape par étape." : "Explain this exercise step by step.");
+
     const id = Date.now();
-    const userMsg: Message = { id, role: "user", text };
+    const userMsg: Message = { id, role: "user", text: promptText, image: img?.dataUrl };
     setMsgs((m) => [...m, userMsg, { id: id + 1, role: "assistant", text: "", loading: true }]);
     setBusy(true);
 
-    const apiMessages = msgs
+    // Prior history as plain text
+    const apiMessages: { role: "user" | "assistant"; content: string | ClaudeBlock[] }[] = msgs
       .filter((m) => !m.loading)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.text }));
-    apiMessages.push({ role: "user", content: text });
+
+    // Latest user message: multimodal if image present, else plain text
+    if (img) {
+      apiMessages.push({
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.base64 } },
+          { type: "text", text: promptText },
+        ],
+      });
+    } else {
+      apiMessages.push({ role: "user", content: promptText });
+    }
+
+    // Best-effort Mathos/Qwen enrichment (silent on failure)
+    const webCtx = await fetchWebContext(promptText);
 
     const level = profile?.level || "Form 5";
     const system = `You are Clair, an expert mathematics tutor for Cameroonian students. You specialize in the MINESEC (Francophone) and GCE (Anglophone) curricula.
@@ -151,15 +181,15 @@ STUDENT LEVEL: ${level}
 LANGUAGE: ${fr ? "French" : "English"} — ALWAYS respond in this language.
 
 RULES:
-- Give clear, step-by-step explanations
+- Give clear, step-by-step explanations (numbered steps, in the spirit of Mathos.ai and Qwen.ai solvers)
+- If the student sends a photo of an exercise, first transcribe the visible problem, then solve it
 - Use LaTeX notation for math: inline $...$ and display $$...$$
 - Examples: $x^2 + 3x - 4 = 0$, $\\frac{-b \\pm \\sqrt{\\Delta}}{2a}$, $\\int_0^1 x^2 dx$
 - Use \\sqrt{}, \\frac{}{}, \\sum, \\int, \\lim, \\sin, \\cos, \\tan etc.
 - Reference Cameroon exams (BEPC, Probatoire, Baccalauréat, GCE O/A Level)
 - Be encouraging and patient
-- For exercises, show the solution step by step
 - Keep responses concise but complete
-- Use currency FCFA for any word problems involving money`;
+- Use currency FCFA for any word problems involving money${webCtx}`;
 
     let assistantText = "";
 
