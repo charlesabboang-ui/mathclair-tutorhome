@@ -34,7 +34,8 @@ serve(async (req) => {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     // Convert OpenAI-style messages to Anthropic format
-    const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
+    // Pass content through as-is when it's an array (multimodal blocks: text + image)
+    const anthropicMessages = messages.map((m: { role: string; content: any }) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
     }));
@@ -55,7 +56,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "claude-sonnet-4-5-20250929",
-            max_tokens: 2048,
+            max_tokens: 4096,
             stream: true,
             system: system || "You are Claude, a helpful AI assistant. Be concise and clear.",
             messages: anthropicMessages,

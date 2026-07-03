@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { streamClaude } from "@/lib/streamClaude";
+import { streamClaude, type ClaudeBlock } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   lang: "en" | "fr";
@@ -16,6 +17,7 @@ interface Message {
   loading?: boolean;
   error?: boolean;
   retryText?: string;
+  image?: string; // data URL for preview
 }
 
 export default function TutorChat({ lang, fr, tutorMsg }: Props) {
@@ -30,9 +32,11 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
   const [busy, setBusy] = useState(false);
   const [rec, setRec] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string; mediaType: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => { if (tutorMsg) setInput(tutorMsg); }, [tutorMsg]);
@@ -124,21 +128,51 @@ export default function TutorChat({ lang, fr, tutorMsg }: Props) {
     if (isMobile) setTimeout(speakNext, 50); else speakNext();
   }
 
+  async function fetchWebContext(query: string): Promise<string> {
+    try {
+      const { data } = await supabase.functions.invoke("math-web-context", { body: { query } });
+      const snippets: string[] = data?.snippets || [];
+      if (!snippets.length) return "";
+      return `\n\nRELATED PUBLIC REFERENCES (from Mathos.ai and Qwen.ai — use for inspiration, cite briefly if helpful):\n${snippets.slice(0, 5).map((s) => `- ${s}`).join("\n")}`;
+    } catch { return ""; }
+  }
+
   async function send(txt?: string) {
     const text = (txt || input).trim();
-    if (!text || busy) return;
+    const img = pendingImage;
+    if ((!text && !img) || busy) return;
     setInput("");
+    setPendingImage(null);
+    if (fileRef.current) fileRef.current.value = "";
     if (taRef.current) taRef.current.style.height = "auto";
 
+    const promptText = text || (fr ? "Explique cet exercice étape par étape." : "Explain this exercise step by step.");
+
     const id = Date.now();
-    const userMsg: Message = { id, role: "user", text };
+    const userMsg: Message = { id, role: "user", text: promptText, image: img?.dataUrl };
     setMsgs((m) => [...m, userMsg, { id: id + 1, role: "assistant", text: "", loading: true }]);
     setBusy(true);
 
-    const apiMessages = msgs
+    // Prior history as plain text
+    const apiMessages: { role: "user" | "assistant"; content: string | ClaudeBlock[] }[] = msgs
       .filter((m) => !m.loading)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.text }));
-    apiMessages.push({ role: "user", content: text });
+
+    // Latest user message: multimodal if image present, else plain text
+    if (img) {
+      apiMessages.push({
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.base64 } },
+          { type: "text", text: promptText },
+        ],
+      });
+    } else {
+      apiMessages.push({ role: "user", content: promptText });
+    }
+
+    // Best-effort Mathos/Qwen enrichment (silent on failure)
+    const webCtx = await fetchWebContext(promptText);
 
     const level = profile?.level || "Form 5";
     const system = `You are Clair, an expert mathematics tutor for Cameroonian students. You specialize in the MINESEC (Francophone) and GCE (Anglophone) curricula.
@@ -147,15 +181,15 @@ STUDENT LEVEL: ${level}
 LANGUAGE: ${fr ? "French" : "English"} — ALWAYS respond in this language.
 
 RULES:
-- Give clear, step-by-step explanations
+- Give clear, step-by-step explanations (numbered steps, in the spirit of Mathos.ai and Qwen.ai solvers)
+- If the student sends a photo of an exercise, first transcribe the visible problem, then solve it
 - Use LaTeX notation for math: inline $...$ and display $$...$$
 - Examples: $x^2 + 3x - 4 = 0$, $\\frac{-b \\pm \\sqrt{\\Delta}}{2a}$, $\\int_0^1 x^2 dx$
 - Use \\sqrt{}, \\frac{}{}, \\sum, \\int, \\lim, \\sin, \\cos, \\tan etc.
 - Reference Cameroon exams (BEPC, Probatoire, Baccalauréat, GCE O/A Level)
 - Be encouraging and patient
-- For exercises, show the solution step by step
 - Keep responses concise but complete
-- Use currency FCFA for any word problems involving money`;
+- Use currency FCFA for any word problems involving money${webCtx}`;
 
     let assistantText = "";
 
@@ -197,7 +231,7 @@ RULES:
         setMsgs((prev) => {
           const updated = [...prev];
           const lastIdx = updated.length - 1;
-          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: text } as Message;
+          updated[lastIdx] = { ...updated[lastIdx], text: fallback, loading: false, error: true, retryText: promptText } as Message;
           return updated;
         });
         setBusy(false);
@@ -291,6 +325,9 @@ RULES:
                   <div className={`px-3 py-2.5 text-sm leading-relaxed min-w-0 break-words ${
                     isUser ? "rounded-[13px_4px_13px_13px] bg-secondary" : "rounded-[4px_13px_13px_13px] bg-muted"
                   }`}>
+                    {m.image && (
+                      <img src={m.image} alt="uploaded exercise" className="max-w-[240px] max-h-[240px] rounded-lg mb-2 border border-border" />
+                    )}
                     {m.loading ? (
                       <div className="flex gap-1">
                         {[1, 2, 3].map((d) => (
@@ -342,8 +379,52 @@ RULES:
           </div>
         )}
 
+        {/* Pending photo preview */}
+        {pendingImage && (
+          <div className="flex items-center gap-2 px-3 pb-1 flex-shrink-0">
+            <div className="relative">
+              <img src={pendingImage.dataUrl} alt="preview" className="w-14 h-14 object-cover rounded-lg border border-border" />
+              <button
+                onClick={() => { setPendingImage(null); if (fileRef.current) fileRef.current.value = ""; }}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center border border-card"
+                aria-label="Remove photo">✕</button>
+            </div>
+            <span className="text-[0.7rem] text-muted-foreground">{fr ? "Photo prête — tapez une question (optionnel) puis envoyez" : "Photo attached — add a question (optional) and send"}</span>
+          </div>
+        )}
+
         {/* Input */}
         <div className="flex items-end gap-2 px-3 py-2.5 flex-shrink-0 border-t border-border bg-card" style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              if (f.size > 5 * 1024 * 1024) {
+                alert(fr ? "Photo trop grande (max 5 Mo)." : "Photo too large (max 5 MB).");
+                e.target.value = "";
+                return;
+              }
+              const dataUrl = await new Promise<string>((res, rej) => {
+                const r = new FileReader();
+                r.onload = () => res(r.result as string);
+                r.onerror = () => rej(new Error("read fail"));
+                r.readAsDataURL(f);
+              });
+              const [meta, base64] = dataUrl.split(",");
+              const mediaType = meta.match(/data:([^;]+)/)?.[1] || f.type || "image/jpeg";
+              setPendingImage({ dataUrl, base64, mediaType });
+            }}
+          />
+          <button onClick={() => fileRef.current?.click()} disabled={busy}
+            title={fr ? "Envoyer une photo de l'exercice" : "Send a photo of the exercise"}
+            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
+            📷
+          </button>
           <button onClick={toggleMic}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
@@ -351,10 +432,10 @@ RULES:
           <textarea ref={taRef} value={input}
             onChange={(e) => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 110) + "px"; }}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={fr ? "Posez votre question maths…" : "Ask any math question…"}
+            placeholder={fr ? "Posez votre question ou joignez une photo…" : "Ask a question or attach a photo…"}
             rows={1}
             className="flex-1 min-w-0 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[40px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
-          <button onClick={() => send()} disabled={busy}
+          <button onClick={() => send()} disabled={busy || (!input.trim() && !pendingImage)}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base border-none cursor-pointer transition-all ${
               busy ? "bg-muted-foreground/50 text-foreground cursor-not-allowed opacity-50" : "bg-secondary text-secondary-foreground hover:brightness-110"
             }`}>➤</button>
