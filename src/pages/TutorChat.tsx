@@ -17,6 +17,7 @@ interface Message {
   loading?: boolean;
   error?: boolean;
   retryText?: string;
+  image?: string; // data URL for preview
 }
 
 export default function TutorChat({ lang, fr, tutorMsg }: Props) {
