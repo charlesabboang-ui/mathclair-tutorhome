@@ -1,6 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import RedeemInviteCode from "@/components/RedeemInviteCode";
+import StudySessionTracker from "@/components/StudySessionTracker";
+
 
 interface Props {
   lang: string;
@@ -83,6 +85,11 @@ export default function Dashboard({ fr, goTo }: Props) {
             {fr ? "Commencer →" : "Start →"}
           </button>
         </div>
+      </div>
+
+      {/* Study session tracker */}
+      <div className="mb-3">
+        <StudySessionTracker fr={fr} />
       </div>
 
       {/* Link to parent */}
