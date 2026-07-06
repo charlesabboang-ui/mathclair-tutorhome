@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://lsiknhkchryvkfisezik.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "mathclair-mcp",
+      "version": "0.1.0",
+      "title": "MathClair MCP"
+    },
+    "tools": [
+      {
+        "name": "get_profile",
+        "title": "Get profile",
+        "description": "Return the signed-in MathClair student or parent profile (name, level, school, language).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_progress",
+        "title": "Get study progress",
+        "description": "Return per-topic practice progress and recent study sessions for the signed-in user.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_study_session",
+        "title": "Log a study session",
+        "description": "Record a MathClair study session (minutes studied and exercise counts) for the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "minutes_studied": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 600,
+              "description": "Minutes studied in this session."
+            },
+            "exercises_attempted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000,
+              "default": 0,
+              "description": "Number of exercises attempted."
+            },
+            "exercises_correct": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000,
+              "default": 0,
+              "description": "Number of exercises answered correctly."
+            },
+            "date": {
+              "type": "string",
+              "description": "ISO date (YYYY-MM-DD). Defaults to today."
+            }
+          },
+          "required": [
+            "minutes_studied"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
