@@ -7,6 +7,7 @@ import Practice from "@/pages/Practice";
 import Exams from "@/pages/Exams";
 import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
+import Whiteboard from "@/pages/Whiteboard";
 import SubscribeModal from "@/components/SubscribeModal";
 
 const NAV = [
@@ -15,15 +16,17 @@ const NAV = [
   { icon: "📚", label: "Topics", id: "topics" },
   { icon: "✏️", label: "Practice", id: "practice" },
   { icon: "🎯", label: "Exams", id: "exams" },
+  { icon: "🎨", label: "Whiteboard", id: "whiteboard" },
   { icon: "🏆", label: "Olympiade", id: "olympiade" },
 ];
 
 const TITLES: Record<string, Record<string, string>> = {
   dashboard: { en: "Dashboard", fr: "Tableau de Bord" },
-  tutor: { en: "Voice Tutor — Clair", fr: "Tuteur Vocal — Clair" },
+  tutor: { en: "Voice Tutor — Clair (Socratic)", fr: "Tuteur Vocal — Clair (Socratique)" },
   topics: { en: "Topics", fr: "Thèmes" },
   practice: { en: "Practice", fr: "Exercices" },
   exams: { en: "Exam Preparation", fr: "Préparation aux Examens" },
+  whiteboard: { en: "Whiteboard & Graphs", fr: "Tableau & Graphiques" },
   parent: { en: "Parental Control", fr: "Contrôle Parental" },
   olympiade: { en: "🏆 Olympiade Plan", fr: "🏆 Plan Olympiade" },
 };
@@ -54,6 +57,7 @@ export default function AppShell() {
       case "topics": return <Topics {...ctx} />;
       case "practice": return <Practice {...ctx} />;
       case "exams": return <Exams {...ctx} />;
+      case "whiteboard": return <Whiteboard fr={fr} />;
       case "olympiade": return <Olympiade lang={lang} fr={fr} setShowModal={setShowModal} />;
       case "parent": return <ParentControl lang={lang} fr={fr} />;
       default: return <Dashboard {...ctx} />;

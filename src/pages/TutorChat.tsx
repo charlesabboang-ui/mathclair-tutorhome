@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { streamClaude, type ClaudeBlock } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
+import TutorContent from "@/components/TutorContent";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -227,21 +228,34 @@ export default function TutorChat({ fr, tutorMsg }: Props) {
     const webCtx = await fetchWebContext(promptText);
 
     const level = profile?.level || "Form 5";
-    const system = `You are Clair, an expert mathematics tutor for Cameroonian students (MINESEC / GCE curricula).
+    const system = `You are Clair, an expert mathematics tutor for Cameroonian students (MINESEC / GCE curricula). You teach with the SOCRATIC METHOD.
 
 STUDENT LEVEL: ${level}
 LANGUAGE: ${fr ? "French" : "English"} — ALWAYS respond in this language.
+
+SOCRATIC METHOD (STRICT):
+- Do NOT immediately give the full solution. Instead, ask ONE guiding question at a time to help the student discover the answer.
+- Begin by checking what they already know or what they've tried.
+- After each of the student's replies, acknowledge briefly then ask the next small question.
+- Only reveal the full worked solution when the student explicitly asks ("show me the answer", "solve it", "je donne ma langue au chat") OR after they have answered several guiding questions correctly.
+- Encourage the student and celebrate small wins.
+- If the student sends a photo of an exercise, first ask them what part they're stuck on before diving in.
 
 FORMATTING RULES (STRICT — the app renders HTML):
 - DO NOT use Markdown headings (no lines starting with # or ##).
 - DO NOT use asterisks for emphasis (no **bold**, no *italic*).
 - For emphasis use HTML tags directly: <b>key term</b> for bold, <u>important idea</u> for underline.
-- Use numbered steps written as "Step 1:", "Step 2:" (or "Étape 1:", "Étape 2:" in French) — plain text, no markdown.
+- Use numbered steps written as "Step 1:", "Step 2:" (or "Étape 1:", "Étape 2:" in French) — plain text.
 - Use LaTeX for math: inline $...$ and display $$...$$. Examples: $x^2 + 3x - 4 = 0$, $\\frac{-b \\pm \\sqrt{\\Delta}}{2a}$.
+
+VISUAL TOOLS (embed only when it genuinely helps):
+- To display a graph, add on its own line: [[geogebra: y = x^2 - 2x + 1]]  (multiple formulas: separate with |)
+- To invite the student to sketch (geometry, diagrams), add on its own line: [[tldraw]]
+- Use these SPARINGLY — only when a picture is more useful than words (functions, geometry figures, statistics).
+
 - Reference Cameroon exams when useful (BEPC, Probatoire, Baccalauréat, GCE O/A Level).
 - Currency in FCFA for money problems.
-- Solve in the spirit of Mathos.ai and Qwen.ai solvers: clear, numbered, step-by-step.
-- Be concise, patient and encouraging.${webCtx}`;
+- Draw on the spirit of Mathos.ai and Qwen.ai solvers: clear, incremental, learner-first.${webCtx}`;
 
     let assistantText = "";
 
@@ -438,7 +452,7 @@ FORMATTING RULES (STRICT — the app renders HTML):
                           <span key={d} className={`w-2 h-2 rounded-full bg-muted-foreground inline-block dot-${d}`} />
                         ))}
                       </div>
-                    ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <MathRenderer text={m.text} />}
+                    ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <TutorContent text={m.text} />}
                   </div>
                   {!isUser && !m.loading && m.text && !m.error && (
                     <button onClick={() => speak(m.text)}
