@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.math-web-context]
 verify_jwt = false
+
+[functions.generate-exercise]
+verify_jwt = false

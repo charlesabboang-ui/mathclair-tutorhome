@@ -73,6 +73,122 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_classes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order: number
+          slug: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          order?: number
+          slug: string
+          subject?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order?: number
+          slug?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      curriculum_lessons: {
+        Row: {
+          class_id: string
+          created_at: string
+          difficulty: string | null
+          estimated_duration: number | null
+          id: string
+          lesson_number: number
+          slug: string
+          status: string | null
+          title: string
+          topic_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          difficulty?: string | null
+          estimated_duration?: number | null
+          id: string
+          lesson_number: number
+          slug: string
+          status?: string | null
+          title: string
+          topic_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          difficulty?: string | null
+          estimated_duration?: number | null
+          id?: string
+          lesson_number?: number
+          slug?: string
+          status?: string | null
+          title?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_lessons_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lessons_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_topics: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          slug: string
+          title: string
+          topic_number: number
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id: string
+          slug: string
+          title: string
+          topic_number: number
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          slug?: string
+          title?: string
+          topic_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_topics_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback: {
         Row: {
           created_at: string
