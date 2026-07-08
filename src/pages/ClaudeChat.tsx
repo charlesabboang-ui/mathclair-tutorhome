@@ -12,7 +12,7 @@ interface Message {
 
 export default function ClaudeChat() {
   const [msgs, setMsgs] = useState<Message[]>([
-    { id: 0, role: "assistant", text: "Hello! I'm Claude. How can I help you today?" },
+    { id: 0, role: "assistant", text: "Hello! I'm Claire. How can I help you today?" },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -58,7 +58,7 @@ export default function ClaudeChat() {
           : isRate
           ? "⏱️ Too many requests. Please wait a few seconds and try again."
           : isNet
-          ? "📶 Claude is temporarily unavailable. Check your connection and tap Retry below."
+          ? "📶 Claire is temporarily unavailable. Check your connection and tap Retry below."
           : `⚠️ Something went wrong: ${err}. Tap Retry below.`;
         setMsgs((prev) => {
           const updated = [...prev];
@@ -78,7 +78,7 @@ export default function ClaudeChat() {
           C
         </div>
         <div>
-          <p className="text-sm font-bold text-foreground">Claude — Sonnet 4</p>
+          <p className="text-sm font-bold text-foreground">Claire</p>
           <p className="text-[0.69rem] text-muted-foreground">
             {busy ? "⏳ Thinking…" : "Online • Anthropic"}
           </p>
@@ -136,7 +136,7 @@ export default function ClaudeChat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Message Claude…"
+          placeholder="Message Claire…"
           className="flex-1 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm outline-none focus:border-primary/50 transition-colors"
         />
         <button
