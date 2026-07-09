@@ -12,6 +12,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("Form 5");
   const [school, setSchool] = useState("");
@@ -31,6 +32,10 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
     }
     if (isSignUp && !name.trim()) {
       setErr(fr ? "Veuillez entrer votre nom." : "Please enter your name.");
+      return;
+    }
+    if (isSignUp && password !== confirmPassword) {
+      setErr(fr ? "Les mots de passe ne correspondent pas." : "Passwords do not match.");
       return;
     }
     setLoading(true);
