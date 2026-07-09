@@ -158,6 +158,12 @@ export default function AppShell() {
             <h2 className="font-display text-sm md:text-base">{TITLES[page]?.[lang] || page}</h2>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin"
+                className="text-[0.68rem] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors">
+                Admin
+              </Link>
+            )}
             <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
               {(["en", "fr"] as const).map((l) => (
                 <button key={l} onClick={() => setLang(l)}
