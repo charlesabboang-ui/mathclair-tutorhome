@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRole";
 import Dashboard from "@/pages/Dashboard";
 import TutorChat from "@/pages/TutorChat";
 import Topics from "@/pages/Topics";
@@ -33,6 +35,7 @@ const TITLES: Record<string, Record<string, string>> = {
 
 export default function AppShell() {
   const { profile, signOut } = useAuth();
+  const { isAdmin } = useUserRoles();
   const [page, setPage] = useState(profile?.is_parent ? "parent" : "dashboard");
   const [lang, setLang] = useState<"en" | "fr">((profile?.lang as "en" | "fr") || "en");
   const [mobileNav, setMobileNav] = useState(false);
