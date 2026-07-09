@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRole";
 import Dashboard from "@/pages/Dashboard";
 import TutorChat from "@/pages/TutorChat";
 import Topics from "@/pages/Topics";
@@ -33,6 +35,7 @@ const TITLES: Record<string, Record<string, string>> = {
 
 export default function AppShell() {
   const { profile, signOut } = useAuth();
+  const { isAdmin } = useUserRoles();
   const [page, setPage] = useState(profile?.is_parent ? "parent" : "dashboard");
   const [lang, setLang] = useState<"en" | "fr">((profile?.lang as "en" | "fr") || "en");
   const [mobileNav, setMobileNav] = useState(false);
@@ -155,6 +158,12 @@ export default function AppShell() {
             <h2 className="font-display text-sm md:text-base">{TITLES[page]?.[lang] || page}</h2>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin"
+                className="text-[0.68rem] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors">
+                Admin
+              </Link>
+            )}
             <div className="flex bg-muted rounded-full p-0.5 gap-0.5">
               {(["en", "fr"] as const).map((l) => (
                 <button key={l} onClick={() => setLang(l)}

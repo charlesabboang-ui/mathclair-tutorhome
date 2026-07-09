@@ -12,6 +12,7 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("Form 5");
   const [school, setSchool] = useState("");
@@ -31,6 +32,10 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
     }
     if (isSignUp && !name.trim()) {
       setErr(fr ? "Veuillez entrer votre nom." : "Please enter your name.");
+      return;
+    }
+    if (isSignUp && password !== confirmPassword) {
+      setErr(fr ? "Les mots de passe ne correspondent pas." : "Passwords do not match.");
       return;
     }
     setLoading(true);
@@ -152,6 +157,24 @@ export default function AuthScreen({ mode, onBack, lang }: Props) {
               className="bg-transparent border-none text-muted-foreground text-xs cursor-pointer mt-1 mb-3 font-body">
               {showPw ? (fr ? "Masquer" : "Hide") : (fr ? "Afficher" : "Show")} {fr ? "le mot de passe" : "password"}
             </button>
+
+            {isSignUp && (
+              <>
+                <label className="block text-[0.74rem] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">
+                  {fr ? "Confirmer le mot de passe" : "Confirm password"}
+                </label>
+                <div className="relative mb-3">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">🔒</span>
+                  <input type={showPw ? "text" : "password"} value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={fr ? "Retapez le mot de passe" : "Re-enter password"}
+                    className={`w-full bg-muted border rounded-xl py-2.5 pl-10 pr-3 text-foreground text-sm outline-none transition-colors ${
+                      confirmPassword && confirmPassword !== password ? "border-destructive" : "border-border focus:border-secondary/50"
+                    }`} />
+                </div>
+              </>
+            )}
+
 
             {isSignUp && isStudent && (
               <div className="grid grid-cols-2 gap-2 mb-3">
