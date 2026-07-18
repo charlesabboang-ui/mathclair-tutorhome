@@ -135,7 +135,7 @@ export default function AppShell() {
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 px-2">
               <p className="font-display text-lg">Math<span className="text-primary">Clair</span></p>
-              <button onClick={() => setMobileNav(false)} className="bg-transparent border-none text-muted-foreground text-lg cursor-pointer">✕</button>
+              <button onClick={() => setMobileNav(false)} aria-label={fr ? "Fermer le menu" : "Close menu"} className="bg-transparent border-none text-muted-foreground text-lg cursor-pointer">✕</button>
             </div>
             {navItems.map((n) => <NavItem key={n.id} {...n} />)}
             <div className="mt-auto pt-3 border-t border-border">
