@@ -425,6 +425,14 @@ VISUAL TOOLS (embed only when it genuinely helps):
             <p className="text-sm font-bold truncate">{fr ? "Clair — Tuteur Maths" : "Clair — Math Tutor"}</p>
             <p className="text-[0.69rem] text-muted-foreground truncate">{status}</p>
           </div>
+          <button
+            data-tour="transcript-btn"
+            onClick={() => setTranscriptOpen(true)}
+            className="px-3 py-1 rounded-full border border-border text-muted-foreground text-xs font-bold hover:bg-muted flex-shrink-0"
+            aria-label={fr ? "Ouvrir la transcription" : "Open transcript"}
+            title={fr ? "Transcription et lecture" : "Transcript and playback"}>
+            📝 <span className="hidden sm:inline">{fr ? "Transcription" : "Transcript"}</span>
+          </button>
           {speaking && (
             <button onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}
               className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer flex-shrink-0">
