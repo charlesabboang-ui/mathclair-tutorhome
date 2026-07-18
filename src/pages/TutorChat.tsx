@@ -565,7 +565,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
             className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
             📷
           </button>
-          <button onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}
+          <button data-tour="mic-btn" onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
             }`}>🎤</button>
