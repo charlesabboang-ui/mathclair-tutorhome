@@ -411,6 +411,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
       <div className="flex-1 min-w-0 bg-card md:border md:border-border md:rounded-xl flex flex-col overflow-hidden min-h-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0 border-b border-border">
+          <h1 className="sr-only">{fr ? "Tuteur Vocal — Clair" : "Voice Tutor — Clair"}</h1>
           <button onClick={() => setSidebarOpen(true)} className="md:hidden w-9 h-9 rounded-lg bg-muted border border-border flex items-center justify-center text-base" aria-label="Chats">☰</button>
           <div className="w-9 h-9 rounded-full flex-shrink-0 relative bg-gradient-to-br from-secondary to-emerald flex items-center justify-center text-base">
             🤖
@@ -540,7 +541,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
             className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
             📷
           </button>
-          <button onClick={toggleMic}
+          <button onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
             }`}>🎤</button>
@@ -550,7 +551,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
             placeholder={fr ? "Posez votre question ou joignez une photo…" : "Ask a question or attach a photo…"}
             rows={1}
             className="flex-1 min-w-0 bg-muted border border-border rounded-xl py-2.5 px-3 text-foreground text-sm resize-none outline-none min-h-[40px] max-h-[110px] leading-relaxed focus:border-secondary/50 transition-colors" />
-          <button onClick={() => send()} disabled={busy || (!input.trim() && !pendingImage)}
+          <button onClick={() => send()} disabled={busy || (!input.trim() && !pendingImage)} aria-label={fr ? "Envoyer le message" : "Send message"}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base border-none cursor-pointer transition-all ${
               busy ? "bg-muted-foreground/50 text-foreground cursor-not-allowed opacity-50" : "bg-secondary text-secondary-foreground hover:brightness-110"
             }`}>➤</button>

@@ -38,6 +38,7 @@ export default function Topics({ fr, goTo, setTutorMsg }: Props) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto p-4 md:p-5">
+      <h1 className="font-display text-lg md:text-xl mb-3">{fr ? "Thèmes" : "Topics"}</h1>
       <div className="flex gap-1.5 flex-wrap mb-4">
         {["All", "Junior", "Senior", "A-Level"].map((f) => (
           <button key={f} onClick={() => setFilter(f)}
