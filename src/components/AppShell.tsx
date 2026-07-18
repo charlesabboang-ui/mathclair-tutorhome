@@ -72,7 +72,7 @@ export default function AppShell() {
     const active = page === id;
     const isOly = id === "olympiade";
     return (
-      <div onClick={() => goTo(id)}
+      <div onClick={() => goTo(id)} data-tour={id === "tutor" ? "nav-tutor" : undefined}
         className={`flex items-center gap-2.5 py-2 px-3 rounded-lg cursor-pointer text-sm mb-0.5 transition-all ${
           active
             ? isOly ? "bg-primary/15 text-primary font-semibold" : "bg-secondary/15 text-secondary font-semibold"
