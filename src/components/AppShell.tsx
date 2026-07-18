@@ -190,7 +190,7 @@ export default function AppShell() {
             {navItems.slice(0, 5).map((n) => {
               const active = page === n.id;
               return (
-                <button key={n.id} onClick={() => goTo(n.id)}
+                <button key={n.id} onClick={() => goTo(n.id)} data-tour={n.id === "tutor" ? "nav-tutor" : undefined}
                   className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer relative transition-colors font-body text-[0.60rem] min-w-0 ${
                     active ? "text-secondary font-bold" : "text-muted-foreground"
                   }`}>
