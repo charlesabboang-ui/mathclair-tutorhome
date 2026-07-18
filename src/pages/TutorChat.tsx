@@ -581,6 +581,20 @@ VISUAL TOOLS (embed only when it genuinely helps):
             }`}>➤</button>
         </div>
       </div>
+
+      <TranscriptPanel
+        open={transcriptOpen}
+        onClose={() => setTranscriptOpen(false)}
+        messages={msgs.filter((m) => !m.loading && m.text).map((m) => ({ id: m.id, role: m.role, text: m.text }))}
+        fr={fr}
+      />
+      <VideoExplainerModal
+        open={!!videoFor}
+        onClose={() => setVideoFor(null)}
+        text={videoFor?.text || ""}
+        question={videoFor?.question}
+        fr={fr}
+      />
     </div>
   );
 }
