@@ -54,6 +54,8 @@ export default function TutorChat({ fr, tutorMsg }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMcp, setShowMcp] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [videoFor, setVideoFor] = useState<{ text: string; question?: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
