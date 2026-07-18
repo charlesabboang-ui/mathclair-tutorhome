@@ -11,6 +11,7 @@ import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
 import Whiteboard from "@/pages/Whiteboard";
 import SubscribeModal from "@/components/SubscribeModal";
+import OnboardingTour from "@/components/OnboardingTour";
 
 const NAV = [
   { icon: "🏠", label: "Dashboard", id: "dashboard" },
