@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { streamClaude, type ClaudeBlock } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
 import TutorContent from "@/components/TutorContent";
+import TranscriptPanel from "@/components/TranscriptPanel";
+import VideoExplainerModal from "@/components/VideoExplainerModal";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
