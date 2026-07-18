@@ -11,6 +11,7 @@ import Olympiade from "@/pages/Olympiade";
 import ParentControl from "@/pages/ParentControl";
 import Whiteboard from "@/pages/Whiteboard";
 import SubscribeModal from "@/components/SubscribeModal";
+import OnboardingTour from "@/components/OnboardingTour";
 
 const NAV = [
   { icon: "🏠", label: "Dashboard", id: "dashboard" },
@@ -71,7 +72,7 @@ export default function AppShell() {
     const active = page === id;
     const isOly = id === "olympiade";
     return (
-      <div onClick={() => goTo(id)}
+      <div onClick={() => goTo(id)} data-tour={id === "tutor" ? "nav-tutor" : undefined}
         className={`flex items-center gap-2.5 py-2 px-3 rounded-lg cursor-pointer text-sm mb-0.5 transition-all ${
           active
             ? isOly ? "bg-primary/15 text-primary font-semibold" : "bg-secondary/15 text-secondary font-semibold"
@@ -189,7 +190,7 @@ export default function AppShell() {
             {navItems.slice(0, 5).map((n) => {
               const active = page === n.id;
               return (
-                <button key={n.id} onClick={() => goTo(n.id)}
+                <button key={n.id} onClick={() => goTo(n.id)} data-tour={n.id === "tutor" ? "nav-tutor" : undefined}
                   className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer relative transition-colors font-body text-[0.60rem] min-w-0 ${
                     active ? "text-secondary font-bold" : "text-muted-foreground"
                   }`}>
@@ -209,6 +210,7 @@ export default function AppShell() {
       </div>
 
       {showModal && <SubscribeModal lang={lang} fr={fr} onClose={() => setShowModal(false)} />}
+      <OnboardingTour fr={fr} onGoTutor={() => goTo("tutor")} />
     </div>
   );
 }

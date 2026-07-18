@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { streamClaude, type ClaudeBlock } from "@/lib/streamClaude";
 import MathRenderer from "@/components/MathRenderer";
 import TutorContent from "@/components/TutorContent";
+import TranscriptPanel from "@/components/TranscriptPanel";
+import VideoExplainerModal from "@/components/VideoExplainerModal";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -52,6 +54,8 @@ export default function TutorChat({ fr, tutorMsg }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showMcp, setShowMcp] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [videoFor, setVideoFor] = useState<{ text: string; question?: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<any>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -421,6 +425,14 @@ VISUAL TOOLS (embed only when it genuinely helps):
             <p className="text-sm font-bold truncate">{fr ? "Clair — Tuteur Maths" : "Clair — Math Tutor"}</p>
             <p className="text-[0.69rem] text-muted-foreground truncate">{status}</p>
           </div>
+          <button
+            data-tour="transcript-btn"
+            onClick={() => setTranscriptOpen(true)}
+            className="px-3 py-1 rounded-full border border-border text-muted-foreground text-xs font-bold hover:bg-muted flex-shrink-0"
+            aria-label={fr ? "Ouvrir la transcription" : "Open transcript"}
+            title={fr ? "Transcription et lecture" : "Transcript and playback"}>
+            📝 <span className="hidden sm:inline">{fr ? "Transcription" : "Transcript"}</span>
+          </button>
           {speaking && (
             <button onClick={() => { speechSynthesis.cancel(); setSpeaking(false); }}
               className="px-3 py-1 rounded-full border border-destructive/30 bg-destructive/10 text-destructive text-xs font-bold cursor-pointer flex-shrink-0">
@@ -456,10 +468,22 @@ VISUAL TOOLS (embed only when it genuinely helps):
                     ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <TutorContent text={m.text} />}
                   </div>
                   {!isUser && !m.loading && m.text && !m.error && (
-                    <button onClick={() => speak(m.text)}
-                      className="self-start bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
-                      🔊 {fr ? "Écouter" : "Listen"}
-                    </button>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button onClick={() => speak(m.text)}
+                        className="bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
+                        🔊 {fr ? "Écouter" : "Listen"}
+                      </button>
+                      <button
+                        data-tour="video-btn"
+                        onClick={() => {
+                          const q = [...msgs].reverse().find((x) => x.role === "user" && x.id !== m.id)?.text;
+                          setVideoFor({ text: m.text, question: q });
+                        }}
+                        className="bg-primary/10 border border-primary/30 text-primary rounded-full px-2.5 py-0.5 text-[0.70rem] font-semibold cursor-pointer hover:bg-primary/20 transition-colors"
+                        aria-label={fr ? "Générer une vidéo explicative" : "Generate video explainer"}>
+                        🎬 {fr ? "Vidéo (1 min)" : "Video (1 min)"}
+                      </button>
+                    </div>
                   )}
                   {!isUser && m.error && m.retryText && (
                     <button
@@ -541,7 +565,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
             className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
             📷
           </button>
-          <button onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}
+          <button data-tour="mic-btn" onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}
             className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all ${
               rec ? "border-2 border-destructive bg-destructive/10 text-destructive" : "border border-border bg-muted text-muted-foreground hover:bg-muted/80"
             }`}>🎤</button>
@@ -557,6 +581,20 @@ VISUAL TOOLS (embed only when it genuinely helps):
             }`}>➤</button>
         </div>
       </div>
+
+      <TranscriptPanel
+        open={transcriptOpen}
+        onClose={() => setTranscriptOpen(false)}
+        messages={msgs.filter((m) => !m.loading && m.text).map((m) => ({ id: m.id, role: m.role, text: m.text }))}
+        fr={fr}
+      />
+      <VideoExplainerModal
+        open={!!videoFor}
+        onClose={() => setVideoFor(null)}
+        text={videoFor?.text || ""}
+        question={videoFor?.question}
+        fr={fr}
+      />
     </div>
   );
 }
