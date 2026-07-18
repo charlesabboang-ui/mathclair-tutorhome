@@ -142,6 +142,7 @@ export default function ClaudeChat() {
         <button
           onClick={send}
           disabled={busy}
+          aria-label="Send message"
           className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           ➤

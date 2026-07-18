@@ -104,6 +104,7 @@ export default function Practice({ fr, goTo, setTutorMsg }: Props) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto p-3 md:p-5">
+      <h1 className="font-display text-lg md:text-xl mb-2">{fr ? "Exercices" : "Practice"}</h1>
       <p className="text-muted-foreground mb-3 text-sm">
         {fr ? "Exercices générés à la demande selon votre classe, thème et leçon. Chaque question est unique."
           : "On-demand AI-generated exercises for your class, topic and lesson. Every question is unique."}

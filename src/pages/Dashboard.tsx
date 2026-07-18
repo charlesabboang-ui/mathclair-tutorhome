@@ -24,6 +24,7 @@ export default function Dashboard({ fr, goTo }: Props) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto p-4 md:p-5">
+      <h1 className="sr-only">{fr ? "Tableau de Bord" : "Dashboard"}</h1>
       {/* Welcome */}
       <div className="rounded-xl p-4 md:p-5 mb-4 relative overflow-hidden border border-secondary/20"
         style={{ background: "linear-gradient(130deg, hsl(230,30%,15%), hsl(222,47%,11%))" }}>
