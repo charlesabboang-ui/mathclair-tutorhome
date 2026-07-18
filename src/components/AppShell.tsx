@@ -210,6 +210,7 @@ export default function AppShell() {
       </div>
 
       {showModal && <SubscribeModal lang={lang} fr={fr} onClose={() => setShowModal(false)} />}
+      <OnboardingTour fr={fr} onGoTutor={() => goTo("tutor")} />
     </div>
   );
 }
