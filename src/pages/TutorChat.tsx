@@ -468,10 +468,22 @@ VISUAL TOOLS (embed only when it genuinely helps):
                     ) : isUser ? <p className="whitespace-pre-wrap">{m.text}</p> : <TutorContent text={m.text} />}
                   </div>
                   {!isUser && !m.loading && m.text && !m.error && (
-                    <button onClick={() => speak(m.text)}
-                      className="self-start bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
-                      🔊 {fr ? "Écouter" : "Listen"}
-                    </button>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button onClick={() => speak(m.text)}
+                        className="bg-transparent border border-border text-muted-foreground rounded-full px-2.5 py-0.5 text-[0.70rem] cursor-pointer hover:bg-muted transition-colors">
+                        🔊 {fr ? "Écouter" : "Listen"}
+                      </button>
+                      <button
+                        data-tour="video-btn"
+                        onClick={() => {
+                          const q = [...msgs].reverse().find((x) => x.role === "user" && x.id !== m.id)?.text;
+                          setVideoFor({ text: m.text, question: q });
+                        }}
+                        className="bg-primary/10 border border-primary/30 text-primary rounded-full px-2.5 py-0.5 text-[0.70rem] font-semibold cursor-pointer hover:bg-primary/20 transition-colors"
+                        aria-label={fr ? "Générer une vidéo explicative" : "Generate video explainer"}>
+                        🎬 {fr ? "Vidéo (1 min)" : "Video (1 min)"}
+                      </button>
+                    </div>
                   )}
                   {!isUser && m.error && m.retryText && (
                     <button
