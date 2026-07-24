@@ -2,8 +2,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://mathclair.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -25,13 +26,20 @@ serve(async (req) => {
 
     const { className, topicTitle, lessonTitle, level, lang, difficulty, exam, seed } = await req.json();
 
+    // Validate and sanitize input to prevent prompt injection
+    const safeString = (val: any, maxLen = 200) => {
+      if (typeof val !== "string") return "";
+      // Remove potential prompt injection characters
+      return val.slice(0, maxLen).replace(/[`"']/g, "");
+    };
+
     const KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!KEY) throw new Error("ANTHROPIC_API_KEY missing");
 
     // Try to fetch a public reference snippet for variety (best effort)
     let context = "";
     try {
-      const q = `${lessonTitle || topicTitle || ""} exercise ${exam || ""}`.trim();
+      const q = `${safeString(lessonTitle) || safeString(topicTitle) || ""} exercise ${safeString(exam)}`.trim();
       const r = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent("site:mathos.ai " + q)}`,
         { headers: { "User-Agent": "Mozilla/5.0 (MathClairBot)" } });
       if (r.ok) {
@@ -48,6 +56,12 @@ serve(async (req) => {
 
     const isFr = lang === "fr";
     const nonce = seed ?? crypto.randomUUID();
+    // Sanitize inputs used in system prompt
+    const safeTopicTitle = safeString(topicTitle, 100);
+    const safeLessonTitle = safeString(lessonTitle, 100);
+    const safeExam = safeString(exam, 50);
+    const safeClassName = safeString(className, 50);
+    
     const sys = `You are an expert Cameroon math exam writer (MINESEC + GCE). Generate ONE unique multiple-choice question.
 
 Return ONLY a valid JSON object, no prose, no markdown fences.
@@ -58,16 +72,16 @@ Schema:
   "options": ["A", "B", "C", "D"],
   "answer": 0,          // index of correct option
   "explanation": "step-by-step solution in ${isFr ? "French" : "English"}, use LaTeX; may embed [[geogebra: <formula>]] to suggest a plot if useful",
-  "topic": "${topicTitle || ""}"
+  "topic": "${safeTopicTitle || ""}"
 }
 
 Rules:
 - LANGUAGE: ${isFr ? "French" : "English"}.
 - Difficulty: ${difficulty || "medium"}.
-- Class/level: ${className || level || "Form 5"}.
-- Topic: ${topicTitle || "general math"}.
-${lessonTitle ? "- Lesson focus: " + lessonTitle : ""}
-${exam ? "- Style it like a real " + exam + " Cameroon exam question." : ""}
+- Class/level: ${safeClassName || level || "Form 5"}.
+- Topic: ${safeTopicTitle || "general math"}.
+${safeLessonTitle ? "- Lesson focus: " + safeLessonTitle : ""}
+${safeExam ? "- Style it like a real " + safeExam + " Cameroon exam question." : ""}
 - Vary numbers/context each time (seed: ${nonce}) so questions are never identical.
 - Options must be plausible distractors; exactly one correct.
 - Use FCFA for money.

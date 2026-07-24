@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://mathclair.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // Fetch related public snippets from Mathos.ai and Qwen.ai via DuckDuckGo HTML.
@@ -37,7 +38,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const q = query.slice(0, 200);
+    // Sanitize query to prevent SSRF and injection attacks
+    // Only allow alphanumeric, spaces, and basic math symbols
+    const sanitizedQuery = query.slice(0, 200).replace(/[^a-zA-Z0-9\s+\-*/=<>]/g, "");
+    if (!sanitizedQuery.trim()) {
+      return new Response(JSON.stringify({ snippets: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const q = sanitizedQuery;
     const [mathos, qwen] = await Promise.all([
       ddg(`site:mathos.ai ${q}`),
       ddg(`site:qwen.ai ${q} math`),
