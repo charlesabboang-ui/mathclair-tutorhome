@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProgress } from "@/hooks/useProgress";
 import TutorContent from "@/components/TutorContent";
+import { useSeoContext } from "@/hooks/useSeoContext";
 
 interface Props {
   lang: string;
@@ -26,6 +27,7 @@ const EXAMS = ["", "BEPC", "Probatoire", "Baccalauréat", "GCE O-Level", "GCE A-
 
 export default function Practice({ fr, goTo, setTutorMsg }: Props) {
   const { recordExercise } = useProgress();
+  const { setSeo } = useSeoContext();
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [topics, setTopics] = useState<TopicRow[]>([]);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -66,6 +68,15 @@ export default function Practice({ fr, goTo, setTutorMsg }: Props) {
     supabase.from("curriculum_lessons").select("id, title, lesson_number").eq("topic_id", topicId).order("lesson_number")
       .then(({ data }) => setLessons((data as LessonRow[]) || []));
   }, [topicId]);
+
+  // Keep page metadata in sync with the selected class / topic / exam style
+  useEffect(() => {
+    setSeo({
+      subject: topics.find((t) => t.id === topicId)?.title || lessons.find((l) => l.id === lessonId)?.title,
+      level: classes.find((c) => c.id === classId)?.name,
+      exam: exam || undefined,
+    });
+  }, [classId, topicId, lessonId, exam, classes, topics, lessons, setSeo]);
 
   const generate = useCallback(async () => {
     setLoading(true); setErr(""); setPicked(null); setEx(null);
