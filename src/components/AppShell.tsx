@@ -91,6 +91,8 @@ export default function AppShell() {
 
   return (
     <div className="fixed inset-0 flex font-body bg-background text-foreground overflow-hidden">
+      <Seo page={page} lang={lang} context={seo} />
+
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-[218px] flex-shrink-0 bg-card border-r border-border flex-col overflow-hidden">
         <div className="font-display text-lg px-3.5 py-3 border-b border-border flex-shrink-0">
