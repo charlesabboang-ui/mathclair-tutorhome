@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import AppRoot from "@/components/AppRoot";
+import { SeoContextProvider } from "@/hooks/useSeoContext";
 import ClaudeChat from "@/pages/ClaudeChat";
 import OAuthConsent from "@/pages/OAuthConsent";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -18,6 +19,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
+       <SeoContextProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AppRoot />} />
@@ -27,6 +29,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+       </SeoContextProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

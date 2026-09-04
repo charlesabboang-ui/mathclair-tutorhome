@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSeoContext } from "@/hooks/useSeoContext";
 
 interface Props {
   lang: string;
@@ -29,9 +30,16 @@ const LV: Record<string, { bg: string; c: string }> = {
 
 export default function Topics({ fr, goTo, setTutorMsg }: Props) {
   const [filter, setFilter] = useState("All");
+  const { setSeo } = useSeoContext();
+
+  useEffect(() => {
+    setSeo(filter === "All" ? {} : { level: filter });
+  }, [filter, setSeo]);
+
   const shown = filter === "All" ? TOPICS_DATA : TOPICS_DATA.filter((t) => t.level === filter);
 
   function openTopic(name: string) {
+    setSeo({ subject: name });
     setTutorMsg(`Teach me: ${name}. Start simply.`);
     goTo("tutor");
   }

@@ -12,6 +12,8 @@ import ParentControl from "@/pages/ParentControl";
 import Whiteboard from "@/pages/Whiteboard";
 import SubscribeModal from "@/components/SubscribeModal";
 import OnboardingTour from "@/components/OnboardingTour";
+import Seo from "@/components/Seo";
+import { useSeoContext } from "@/hooks/useSeoContext";
 
 const NAV = [
   { icon: "🏠", label: "Dashboard", id: "dashboard" },
@@ -42,6 +44,7 @@ export default function AppShell() {
   const [mobileNav, setMobileNav] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [tutorMsg, setTutorMsg] = useState("");
+  const { seo } = useSeoContext();
 
   const fr = lang === "fr";
   const isParent = profile?.is_parent || false;
@@ -91,6 +94,8 @@ export default function AppShell() {
 
   return (
     <div className="fixed inset-0 flex font-body bg-background text-foreground overflow-hidden">
+      <Seo page={page} lang={lang} context={seo} />
+
       {/* Desktop Sidebar */}
       <div className="hidden md:flex w-[218px] flex-shrink-0 bg-card border-r border-border flex-col overflow-hidden">
         <div className="font-display text-lg px-3.5 py-3 border-b border-border flex-shrink-0">
