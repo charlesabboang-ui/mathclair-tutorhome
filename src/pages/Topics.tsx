@@ -39,6 +39,7 @@ export default function Topics({ fr, goTo, setTutorMsg }: Props) {
   const shown = filter === "All" ? TOPICS_DATA : TOPICS_DATA.filter((t) => t.level === filter);
 
   function openTopic(name: string) {
+    setSeo({ subject: name });
     setTutorMsg(`Teach me: ${name}. Start simply.`);
     goTo("tutor");
   }

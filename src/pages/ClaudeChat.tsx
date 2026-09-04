@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { streamClaude } from "@/lib/streamClaude";
 import ReactMarkdown from "react-markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Seo from "@/components/Seo";
 
 interface Message {
   id: number;
