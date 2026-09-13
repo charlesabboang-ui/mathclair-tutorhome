@@ -155,7 +155,26 @@ ${context}`;
     if (!jsonMatch) throw new Error("No JSON in AI reply");
     const exercise = JSON.parse(jsonMatch[0]);
 
-    return new Response(JSON.stringify({ exercise }), {
+    // 2) Bank the generated question against the curriculum so it becomes reusable
+    if (classId && Array.isArray(exercise?.options) && typeof exercise?.answer === "number") {
+      const { data: saved } = await admin.from("curriculum_exercises").insert({
+        class_id: classId,
+        topic_id: topicId || null,
+        lesson_id: lessonId || null,
+        topic_title: safeTopicTitle || exercise.topic || "",
+        question: String(exercise.question ?? ""),
+        options: exercise.options.slice(0, 4).map((o: unknown) => String(o)),
+        answer: Math.max(0, Math.min(3, exercise.answer)),
+        explanation: String(exercise.explanation ?? ""),
+        difficulty: wantedDiff,
+        lang: wantedLang,
+        exam: safeExam || null,
+        source: "ai",
+      }).select("id").maybeSingle();
+      if (saved?.id) exercise.id = saved.id;
+    }
+
+    return new Response(JSON.stringify({ exercise, source: "generated" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
