@@ -100,6 +100,79 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_exercises: {
+        Row: {
+          answer: number
+          class_id: string
+          created_at: string
+          difficulty: string
+          exam: string | null
+          explanation: string
+          id: string
+          lang: string
+          lesson_id: string | null
+          options: Json
+          question: string
+          source: string
+          topic_id: string | null
+          topic_title: string
+        }
+        Insert: {
+          answer: number
+          class_id: string
+          created_at?: string
+          difficulty?: string
+          exam?: string | null
+          explanation?: string
+          id?: string
+          lang?: string
+          lesson_id?: string | null
+          options: Json
+          question: string
+          source?: string
+          topic_id?: string | null
+          topic_title?: string
+        }
+        Update: {
+          answer?: number
+          class_id?: string
+          created_at?: string
+          difficulty?: string
+          exam?: string | null
+          explanation?: string
+          id?: string
+          lang?: string
+          lesson_id?: string | null
+          options?: Json
+          question?: string
+          source?: string
+          topic_id?: string | null
+          topic_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_exercises_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_exercises_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_exercises_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_lessons: {
         Row: {
           class_id: string
@@ -185,6 +258,53 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "curriculum_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_attempts: {
+        Row: {
+          chosen: number | null
+          class_id: string | null
+          correct: boolean
+          created_at: string
+          difficulty: string
+          exercise_id: string | null
+          id: string
+          seconds: number | null
+          topic_title: string
+          user_id: string
+        }
+        Insert: {
+          chosen?: number | null
+          class_id?: string | null
+          correct?: boolean
+          created_at?: string
+          difficulty?: string
+          exercise_id?: string | null
+          id?: string
+          seconds?: number | null
+          topic_title?: string
+          user_id: string
+        }
+        Update: {
+          chosen?: number | null
+          class_id?: string | null
+          correct?: boolean
+          created_at?: string
+          difficulty?: string
+          exercise_id?: string | null
+          id?: string
+          seconds?: number | null
+          topic_title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_attempts_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_exercises"
             referencedColumns: ["id"]
           },
         ]
