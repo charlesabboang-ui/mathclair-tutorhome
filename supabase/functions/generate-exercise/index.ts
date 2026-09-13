@@ -24,7 +24,46 @@ serve(async (req) => {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-    const { className, topicTitle, lessonTitle, level, lang, difficulty, exam, seed } = await req.json();
+    const { className, topicTitle, lessonTitle, level, lang, difficulty, exam, seed,
+      classId, topicId, lessonId, excludeIds } = await req.json();
+
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false } },
+    );
+    const wantedLang = lang === "fr" ? "fr" : "en";
+    const wantedDiff = ["easy", "medium", "hard"].includes(difficulty) ? difficulty : "medium";
+    const skip: string[] = Array.isArray(excludeIds) ? excludeIds.filter((x: unknown) => typeof x === "string").slice(0, 200) : [];
+
+    // 1) Serve a stored curriculum question first (real bank, no AI cost)
+    if (classId) {
+      let q = admin.from("curriculum_exercises")
+        .select("id, question, options, answer, explanation, topic_title, difficulty")
+        .eq("class_id", classId)
+        .eq("lang", wantedLang)
+        .eq("difficulty", wantedDiff)
+        .limit(60);
+      if (lessonId) q = q.eq("lesson_id", lessonId);
+      else if (topicId) q = q.eq("topic_id", topicId);
+      if (exam) q = q.eq("exam", exam);
+      const { data: bank } = await q;
+      const pool = (bank || []).filter((r: any) => !skip.includes(r.id));
+      if (pool.length) {
+        const row: any = pool[Math.floor(Math.random() * pool.length)];
+        return new Response(JSON.stringify({
+          exercise: {
+            id: row.id,
+            question: row.question,
+            options: row.options,
+            answer: row.answer,
+            explanation: row.explanation,
+            topic: row.topic_title,
+          },
+          source: "curriculum",
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
 
     // Validate and sanitize input to prevent prompt injection
     const safeString = (val: any, maxLen = 200) => {
