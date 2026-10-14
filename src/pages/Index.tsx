@@ -106,7 +106,7 @@ export default function Landing({ onLogin, lang, setLang }: Props) {
       <div className="px-4 md:px-8 pb-16 max-w-5xl mx-auto">
         <div className="relative rounded-2xl overflow-hidden border border-primary/30 p-6 md:p-10"
           style={{ background: "linear-gradient(135deg, hsl(28,30%,4%), hsl(222,47%,11%))" }}>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] rounded-full pointer-events-none"
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px] h-[250px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(circle, hsla(38,92%,50%,0.12) 0%, transparent 65%)" }} />
           <div className="grid md:grid-cols-2 gap-8 relative z-10">
             <div>

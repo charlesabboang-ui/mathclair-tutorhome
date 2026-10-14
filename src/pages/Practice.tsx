@@ -188,7 +188,7 @@ export default function Practice({ fr, goTo, setTutorMsg }: Props) {
           : "Real questions tied to your curriculum topics and lessons, graded automatically."}
       </p>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mb-3">
         <select value={classId} onChange={(e) => setClassId(e.target.value)} className={selCls} aria-label={fr ? "Classe" : "Class"}>
           <option value="">{fr ? "Classe…" : "Class…"}</option>
           {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -258,10 +258,10 @@ export default function Practice({ fr, goTo, setTutorMsg }: Props) {
               return (
                 <div key={t.topic} className="flex items-center gap-2 text-xs">
                   <span className="flex-1 truncate text-muted-foreground">{t.topic}</span>
-                  <span className="w-24 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <span className="w-14 sm:w-24 flex-shrink-0 h-1.5 rounded-full bg-muted overflow-hidden">
                     <span className="block h-full bg-secondary" style={{ width: `${pct}%` }} />
                   </span>
-                  <span className="w-16 text-right font-bold">{t.ok}/{t.done} · {pct}%</span>
+                  <span className="flex-shrink-0 text-right font-bold whitespace-nowrap">{t.ok}/{t.done} · {pct}%</span>
                 </div>
               );
             })}

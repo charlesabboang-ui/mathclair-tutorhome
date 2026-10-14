@@ -457,7 +457,7 @@ VISUAL TOOLS (embed only when it genuinely helps):
                     isUser ? "rounded-[13px_4px_13px_13px] bg-secondary" : "rounded-[4px_13px_13px_13px] bg-muted"
                   }`}>
                     {m.image && (
-                      <img src={m.image} alt="uploaded exercise" className="max-w-[240px] max-h-[240px] rounded-lg mb-2 border border-border" />
+                      <img src={m.image} alt="uploaded exercise" className="w-full max-w-[280px] h-auto max-h-[280px] object-contain rounded-lg mb-2 border border-border" />
                     )}
                     {m.loading ? (
                       <div className="flex gap-1">
@@ -561,8 +561,8 @@ VISUAL TOOLS (embed only when it genuinely helps):
             }}
           />
           <button onClick={() => fileRef.current?.click()} disabled={busy}
-            title={fr ? "Envoyer une photo" : "Send a photo"}
-            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
+            title={fr ? "Envoyer une photo" : "Send a photo"} aria-label={fr ? "Envoyer une photo" : "Send a photo"}
+            className="w-11 h-11 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base cursor-pointer transition-all border border-border bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
             📷
           </button>
           <button data-tour="mic-btn" onClick={toggleMic} aria-label={rec ? (fr ? "Arrêter l'écoute" : "Stop listening") : (fr ? "Parler au micro" : "Speak to microphone")}

@@ -190,13 +190,13 @@ export default function AppShell() {
         </div>
 
         {/* Mobile bottom nav */}
-        <div className="md:hidden flex-shrink-0 border-t border-border bg-card">
+        <div className="md:hidden flex-shrink-0 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]">
           <div className="flex overflow-x-auto">
             {navItems.slice(0, 5).map((n) => {
               const active = page === n.id;
               return (
                 <button key={n.id} onClick={() => goTo(n.id)} data-tour={n.id === "tutor" ? "nav-tutor" : undefined}
-                  className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer relative transition-colors font-body text-[0.60rem] min-w-0 ${
+                  className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer relative transition-colors font-body text-[0.65rem] min-w-[56px] ${
                     active ? "text-secondary font-bold" : "text-muted-foreground"
                   }`}>
                   <span className="text-lg">{n.icon}</span>
@@ -206,7 +206,7 @@ export default function AppShell() {
               );
             })}
             <button onClick={() => setMobileNav(true)}
-              className="flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer font-body text-[0.60rem] text-muted-foreground min-w-0">
+              className="flex-1 flex flex-col items-center gap-0.5 py-2 border-none bg-transparent cursor-pointer font-body text-[0.65rem] text-muted-foreground min-w-[56px]">
               <span className="text-lg">⋯</span>
               <span>More</span>
             </button>
