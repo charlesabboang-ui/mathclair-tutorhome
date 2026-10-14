@@ -69,7 +69,8 @@ export default function OnboardingTour({ fr, onGoTutor }: { fr: boolean; onGoTut
     const findTarget = () => {
       const el = document.querySelector(STEPS[step].selector) as HTMLElement | null;
       if (el) {
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        // Only scroll on first mount of a step; repeated polling must not hijack scrolling
+        if (!rect) el.scrollIntoView({ block: "center", behavior: "smooth" });
         setRect(el.getBoundingClientRect());
       } else {
         setRect(null);
