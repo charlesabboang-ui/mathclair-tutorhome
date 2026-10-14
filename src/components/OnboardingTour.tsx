@@ -51,12 +51,26 @@ export default function OnboardingTour({ fr, onGoTutor }: { fr: boolean; onGoTut
     }
   }, []);
 
+  // ESC key dismisses the tour
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        localStorage.setItem(KEY, "skipped");
+        setActive(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active]);
+
   useLayoutEffect(() => {
     if (!active) return;
     const findTarget = () => {
       const el = document.querySelector(STEPS[step].selector) as HTMLElement | null;
       if (el) {
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        // Only scroll on first mount of a step; repeated polling must not hijack scrolling
+        if (!rect) el.scrollIntoView({ block: "center", behavior: "smooth" });
         setRect(el.getBoundingClientRect());
       } else {
         setRect(null);
