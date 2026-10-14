@@ -51,6 +51,19 @@ export default function OnboardingTour({ fr, onGoTutor }: { fr: boolean; onGoTut
     }
   }, []);
 
+  // ESC key dismisses the tour
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        localStorage.setItem(KEY, "skipped");
+        setActive(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active]);
+
   useLayoutEffect(() => {
     if (!active) return;
     const findTarget = () => {
